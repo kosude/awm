@@ -17,15 +17,11 @@ endif()
 # treating warnings as errors may be problematic when compiling for prod use.
 # we are assuming here that lib users will be compiling in release config and lib developers/contributors in debug config.
 if (AWM_DEBUG)
-    if (MSVC)
-        set(AWM_COMPILE_OPTIONS
-            /W4 /WX)
-    else()
-        set(AWM_COMPILE_OPTIONS
-            -Wall -Wextra -Wpedantic -Werror
-            -Wno-error=unused-parameter
-            -Wno-error=unused-function)
-    endif()
+    set(AWM_COMPILE_OPTIONS
+        -Wall -Wextra -Wpedantic -Werror
+        -Wno-error=unused-parameter
+        -Wno-error=unused-function
+        -Wmissing-prototypes -Wstrict-prototypes)
 endif()
 
 set(CMAKE_C_STANDARD 11)

@@ -9,6 +9,6 @@
 
 #include <stdio.h>
 
-void print_hello_msg() {
+void print_hello_msg(void) {
     printf("Hello awm\n");
 }

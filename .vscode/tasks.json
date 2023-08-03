@@ -10,7 +10,7 @@
                 ".",
                 "-B",
                 "${workspaceFolder}/build",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
+                "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
 
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",

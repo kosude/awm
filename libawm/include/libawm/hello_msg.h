@@ -12,7 +12,7 @@
     extern "C" {
 #endif
 
-void print_hello_msg();
+void print_hello_msg(void);
 
 #ifdef __cplusplus
     }

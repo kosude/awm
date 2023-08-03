@@ -7,7 +7,11 @@
 
 #include "libawm.h"
 
-int main() {
+#include <stdio.h>
+
+int main(void) {
+    printf("%d-bit\n", ((int) sizeof(void *)) * 8);
+
     print_hello_msg();
 
     return 0;
