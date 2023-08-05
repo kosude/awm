@@ -10,8 +10,6 @@
 #include "sighandle.h"
 #include "manager/session.h"
 
-#include <signal.h>
-
 xcb_connection_t *con;
 
 session_t session;
@@ -38,6 +36,7 @@ int main(void) {
     LINFO("Successfully opened window manager session");
 
     while (1) {
+        session_handle_next_event(&session);
     }
 
     return 0;

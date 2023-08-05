@@ -3,6 +3,7 @@ set(SRCS
 
     "sighandle.c"
 
+    "manager/events.c"
     "manager/session.c"
     "manager/window.c"
 )

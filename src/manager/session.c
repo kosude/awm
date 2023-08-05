@@ -8,7 +8,10 @@
 #include "session.h"
 
 #include "window.h"
+#include "events.h"
 #include "libawm/logging.h"
+
+#include <xcb/xcb_aux.h>
 
 /**
  * Register events from a session's root window in order to intercept requests from top level windows.
@@ -65,7 +68,7 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
     xcb_connection_t *con = session->con;
     xcb_screen_t *scr = session->scr;
 
-    xcb_generic_error_t *err;
+    xcb_generic_error_t *err = NULL;
 
     // add window to save set
     if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
@@ -82,9 +85,23 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
     // reparent window
     reparent_child_under_frame(con, win, frame);
 
-    // TODO register events
-
     return 1;
+}
+
+void session_handle_next_event(session_t *const session) {
+    xcb_connection_t *con = session->con;
+
+    xcb_flush(con);
+
+    if (xcb_connection_has_error(con)) {
+        LFATAL("The X connection was unexpectedly interrupted (did the X server terminate/crash?)");
+        KILL();
+    }
+
+    xcb_generic_event_t *ev = xcb_wait_for_event(con);
+    invoke_event_handler_fun(session, ev);
+
+    free(ev);
 }
 
 static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
@@ -100,8 +117,6 @@ static void register_wm_substructure_events(xcb_connection_t *const con, const x
         free(err);
         KILL();
     }
-
-    free(err);
 }
 
 static void manage_existing_windows(session_t *const session) {

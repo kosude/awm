@@ -10,14 +10,16 @@
 #include "libawm/logging.h"
 
 xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t child) {
-    xcb_generic_error_t *err;
     xcb_window_t root = scr->root;
     xcb_window_t root_visual = scr->root_visual;
+    xcb_generic_error_t *err = NULL;
 
     // get client window geometry
     xcb_get_geometry_reply_t *geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, child), &err);
     if (err) {
         LERR("Error when getting client window geometry: %d", err->error_code);
+
+        free(err);
         return -1;
     }
 
@@ -36,11 +38,14 @@ xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, 
         XCB_WINDOW_CLASS_INPUT_OUTPUT, root_visual,
         XCB_CW_BACK_PIXEL, (uint32_t []) { framecol }
     ));
+
     free(geom);
 
     if (err) {
         LERR("Error when creating frame window: %d", err->error_code);
         xcb_destroy_window(con, frame);
+
+        free(err);
         return -1;
     }
 
@@ -73,7 +78,10 @@ void reparent_child_under_frame(xcb_connection_t *const con, const xcb_window_t 
         xcb_generic_error_t *err = xcb_request_check(con, vcookies[i]);
         if (err) {
             LERR("When reparenting window %u: X error code: %u", child, err->error_code);
+
+            free(err);
             return;
         }
+        free(err);
     }
 }
