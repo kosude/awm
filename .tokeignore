@@ -1,7 +1,4 @@
 build/
 deps/
 
-CMakeLists.txt
-*.cmake
-
 *.md

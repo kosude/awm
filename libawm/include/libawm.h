@@ -12,8 +12,6 @@
     extern "C" {
 #endif
 
-#include "libawm/hello_msg.h"
-
 #ifdef __cplusplus
     }
 #endif
