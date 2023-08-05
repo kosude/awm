@@ -12,6 +12,8 @@
     extern "C" {
 #endif
 
+#include "libawm/logging.h"
+
 #ifdef __cplusplus
     }
 #endif

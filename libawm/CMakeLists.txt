@@ -1,5 +1,5 @@
 set(SRCS
-    "lib/hello_msg.c"
+    "lib/htable.c"
 )
 set(TARGET_NAME "libawm")
 
@@ -15,4 +15,9 @@ target_compile_definitions(${TARGET_NAME} PUBLIC ${AWM_MACROS})
 target_include_directories(${TARGET_NAME}
     PUBLIC
         "${CMAKE_CURRENT_LIST_DIR}/include/"
+        "${AWM_DEPS_DIR}/"
 )
+
+# zf_log v0.4.1
+add_subdirectory("${AWM_DEPS_DIR}/zf_log/" "${PROJECT_BINARY_DIR}/deps/zf_log/")
+target_link_libraries(${TARGET_NAME} zf_log)

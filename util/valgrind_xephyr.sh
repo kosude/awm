@@ -9,10 +9,10 @@ set -e
 
 # process to run the wm in (e.g. valgrind)
 runtime() {
-    valgrind "$@"
+    valgrind --leak-check=full "$@"
 }
 
-AWM_EXEC="./build/awm/awmstart" # relative to repository root directory
+AWM_EXEC="./build/awm/awm" # relative to repository root directory
 
 # get available display number
 DISPLAY_NUM=

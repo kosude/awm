@@ -1,14 +1,19 @@
 set(SRCS
     "main.c"
+
+    "sighandle.c"
+
+    "manager/client.c"
+    "manager/session.c"
 )
-set(TARGET_NAME "awmstart")
+set(TARGET_NAME "awm")
 
 add_executable(${TARGET_NAME} ${SRCS})
 
 target_compile_options(${TARGET_NAME} PRIVATE ${AWM_COMPILE_OPTIONS})
 target_compile_definitions(${TARGET_NAME} PRIVATE ${AWM_MACROS})
 
-# target_link_libraries(${TARGET_NAME} "libawm")
+target_link_libraries(${TARGET_NAME} "libawm")
 
 # find and link to xcb libs
 find_package(XCB QUIET REQUIRED
