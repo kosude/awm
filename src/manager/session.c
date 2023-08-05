@@ -7,8 +7,7 @@
 
 #include "session.h"
 
-#include "client.h"
-
+#include "window.h"
 #include "libawm/logging.h"
 
 /**
@@ -17,22 +16,17 @@
  * As only one X client can listen to substructure redirection on the root window at a time, we consider another
  * concurrent WM to be an error.
  */
-static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
-    xcb_generic_error_t *err = NULL;
+static void register_wm_substructure_events(
+    xcb_connection_t *const con,
+    const xcb_window_t root
+);
 
-    // register root window to intercept all top-level events
-    xcb_void_cookie_t c = xcb_change_window_attributes_checked(con, root, XCB_CW_EVENT_MASK,
-        (uint32_t[]) { XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT });
-    xcb_flush(con);
-
-    if ((err = xcb_request_check(con, c))) {
-        LFATAL("Another window manager is already running (error code %d)", err->error_code);
-        free(err);
-        KILL();
-    }
-
-    free(err);
-}
+/**
+ * Manage all currently existing X windows in `session`.
+ */
+static void manage_existing_windows(
+    session_t *const session
+);
 
 session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     session_t session;
@@ -61,9 +55,62 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // listen to substructure events
     register_wm_substructure_events(con, root);
 
+    // manage windows that were created before wm start
+    manage_existing_windows(&session);
+
+    return session;
+}
+
+uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
+    xcb_connection_t *con = session->con;
+    xcb_screen_t *scr = session->scr;
+
+    xcb_generic_error_t *err;
+
+    // add window to save set
+    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
+        LERR("When adding window %u to save-set: X error code: %u", win, err->error_code);
+        free(err);
+    }
+
+    xcb_window_t frame = create_frame(con, scr, win);
+    if (frame == (uint32_t) -1) {
+        // an error occurred
+        return 0;
+    }
+
+    // reparent window
+    reparent_child_under_frame(con, win, frame);
+
+    // TODO register events
+
+    return 1;
+}
+
+static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
+    xcb_generic_error_t *err = NULL;
+
+    // register root window to intercept all top-level events
+    xcb_void_cookie_t c = xcb_change_window_attributes_checked(con, root, XCB_CW_EVENT_MASK,
+        (uint32_t[]) { XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT });
+    xcb_flush(con);
+
+    if ((err = xcb_request_check(con, c))) {
+        LFATAL("Another window manager is already running (error code %d)", err->error_code);
+        free(err);
+        KILL();
+    }
+
+    free(err);
+}
+
+static void manage_existing_windows(session_t *const session) {
+    xcb_connection_t *con = session->con;
+    xcb_window_t root = session->root;
+
     // get window tree
     xcb_query_tree_reply_t *tree = xcb_query_tree_reply(con,
-        xcb_query_tree(con, scr->root), NULL);
+        xcb_query_tree(con, root), NULL);
 
     // get child windows of the root
     int chldlen = xcb_query_tree_children_length(tree);
@@ -72,10 +119,11 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // manage each existing window
     xcb_window_t *chld = xcb_query_tree_children(tree);
     for (int i = 0; i < chldlen; i++) {
-        LLOG("Window %d: %d", i, chld[i]);
+        if (!session_manage_window(session, chld[i])) {
+            LERR("Failed to register window %d for managing", chld[i]);
+            continue;
+        }
     }
 
     free(tree);
-
-    return session;
 }

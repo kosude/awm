@@ -38,6 +38,14 @@ session_t session_init(
     const int32_t scrnum
 );
 
+/**
+ * Reparent and register events for managing the given window `win`. Returns 0 if failed.
+ */
+uint8_t session_manage_window(
+    session_t *const session,
+    xcb_window_t win
+);
+
 #ifdef __cplusplus
     }
 #endif
