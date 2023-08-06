@@ -7,10 +7,46 @@ die() {
 }
 set -e
 
+# print usage info
+usage() {
+    cat <<EOF
+Usage: $0 FLAGS
+
+Valgrind is used by default. Note that starting the window manager is
+intentionally delayed when using this script!
+
+    --valgrind          Run in valgrind (default)
+    --none              Run directly
+    -h --help           Print this help
+EOF
+}
+
 # process to run the wm in (e.g. valgrind)
 runtime() {
     valgrind --leak-check=full "$@"
 }
+
+# arg parsing
+for arg in "$@" ; do
+    case "$arg" in
+        --valgrind)
+            ;;
+        --none)
+            runtime() {
+                "$@"
+            }
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument $arg"
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
 
 AWM_EXEC="./build/awm/awm" # relative to repository root directory
 
@@ -40,6 +76,8 @@ done
 
 # test programs
 DISPLAY=:$DISPLAY_NUM $(command -v xterm) &
+
+sleep 0.4
 
 # run the window manager
 DISPLAY=:$DISPLAY_NUM \
