@@ -19,7 +19,8 @@ int main(void) {
 
     // set callbacks for controlled exits + cleanup
     set_signal_callbacks((signal_callback_data) {
-        .con = con
+        .con = con,
+        .session = &session
     });
 
     // connect to X server
@@ -33,9 +34,9 @@ int main(void) {
 
     // initialise window manager session
     session = session_init(con, scrnum);
-    LINFO("Successfully opened window manager session");
 
-    while (1) {
+    // main loop
+    for (;;) {
         session_handle_next_event(&session);
     }
 

@@ -25,7 +25,7 @@ static void register_wm_substructure_events(
 );
 
 /**
- * Manage all currently existing X windows in `session`.
+ * Manage all currently existing X windows in `session`. In other words, reparent them and register substructure redirect on their new frames.
  */
 static void manage_existing_windows(
     session_t *const session
@@ -58,15 +58,25 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // listen to substructure events
     register_wm_substructure_events(con, root);
 
+    session.clientset = clientset_init();
+
     // manage windows that were created before wm start
     manage_existing_windows(&session);
 
     return session;
 }
 
+void session_dealloc(session_t *const session) {
+    clientset_t clientset = session->clientset;
+
+    clientset_dealloc(&clientset);
+}
+
 uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
     xcb_connection_t *con = session->con;
     xcb_screen_t *scr = session->scr;
+
+    clientset_t clientset = session->clientset;
 
     xcb_generic_error_t *err = NULL;
 
@@ -85,6 +95,16 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
     // reparent window
     reparent_child_under_frame(con, win, frame);
 
+    client_t *client = malloc(sizeof(client_t));
+    client->child = win;
+    client->parent = frame;
+
+    if (!clientset_add_client(&clientset, client)) {
+        // TODO: sort out a better fallback if we can't store the managed client - should the frame be deleted?
+        free(client);
+        LERR("Could not keep client in session managed set");
+    }
+
     return 1;
 }
 
@@ -98,7 +118,11 @@ void session_handle_next_event(session_t *const session) {
         KILL();
     }
 
+    // handle the next event if not NULL
     xcb_generic_event_t *ev = xcb_wait_for_event(con);
+    if (!ev) {
+        return;
+    }
     invoke_event_handler_fun(session, ev);
 
     free(ev);

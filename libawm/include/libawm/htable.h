@@ -24,6 +24,7 @@ struct htable_u32;
 
             // (modified for the bwm project)
 typedef struct htable_u32 htable_u32_t;
+typedef enum htable_err htable_err_t;
 
 // Allocate a new hash table
 struct htable_u32* htable_u32_new(void);

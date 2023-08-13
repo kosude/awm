@@ -8,6 +8,7 @@
 #include "sighandle.h"
 
 #include "libawm/logging.h"
+#include "manager/session.h"
 
 #include <xcb/xcb.h>
 #include <signal.h>
@@ -29,6 +30,8 @@ void set_signal_callbacks(signal_callback_data data){
 
 static void exit_cb(void) {
     LINFO("Window manager process terminating...");
+
+    session_dealloc(cb_data.session);
 
     xcb_disconnect(cb_data.con); // this must be done regardless of if there was an issue with connecting or not
 }

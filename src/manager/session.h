@@ -14,6 +14,8 @@
 
 #include <xcb/xcb.h>
 
+#include "client.h"
+
 /**
  * A struct representing the window manager session.
  */
@@ -24,6 +26,9 @@ typedef struct session_t {
     xcb_screen_t *scr;
     /** The root X window. */
     xcb_window_t root;
+
+    /** Set of managed clients. */
+    clientset_t clientset;
 } session_t;
 
 /**
@@ -34,6 +39,13 @@ typedef struct session_t {
 session_t session_init(
     xcb_connection_t *const con,
     const int32_t scrnum
+);
+
+/**
+ * Deallocate memory reserved for the given session.
+ */
+void session_dealloc(
+    session_t *const session
 );
 
 /**
