@@ -1,4 +1,4 @@
-# <img src="rc/wm_logo.svg" height=40>
+# <img src="res/wm_logo.svg" height=40>
 
 A lightweight X (xcb) window manager for use on Linux systems.
 
