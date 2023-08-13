@@ -82,7 +82,7 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
 
     // add window to save set
     if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
-        LERR("When adding window %u to save-set: X error code: %u", win, err->error_code);
+        LERR("When adding window 0x%08x to save-set: X error code: %u", win, err->error_code);
         free(err);
     }
 

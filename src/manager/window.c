@@ -77,11 +77,25 @@ void reparent_child_under_frame(xcb_connection_t *const con, const xcb_window_t 
     for (uint32_t i = 0; i < sizeof(vcookies) / sizeof(vcookies[0]); i++) {
         xcb_generic_error_t *err = xcb_request_check(con, vcookies[i]);
         if (err) {
-            LERR("When reparenting window %u: X error code: %u", child, err->error_code);
+            LERR("When reparenting window 0x%08x: X error code: %u", child, err->error_code);
 
             free(err);
             return;
         }
         free(err);
     }
+}
+
+void reparent_child_to_root(xcb_connection_t *const con, const xcb_window_t child, const xcb_window_t root) {
+    xcb_generic_error_t *err;
+
+    // request to reparent under root
+    // (does it matter if the offset is 0?)
+    if ((err = xcb_request_check(con, xcb_reparent_window_checked(con, child, root, 0, 0)))) {
+        LERR("When reparenting window 0x%08x to ROOT: X error code: %u", child, err->error_code);
+
+        free(err);
+        return;
+    }
+    free(err);
 }

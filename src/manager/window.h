@@ -32,6 +32,15 @@ void reparent_child_under_frame(
     const xcb_window_t frame
 );
 
+/**
+ * Reparent the given window, assuming it has a frame, to the root window.
+ */
+void reparent_child_to_root(
+    xcb_connection_t *const con,
+    const xcb_window_t child,
+    const xcb_window_t root
+);
+
 #ifdef __cplusplus
     }
 #endif
