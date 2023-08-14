@@ -13,7 +13,7 @@
                 "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
                 // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-gnu.cmake",
 
-                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCMAKE_BUILD_TYPE=Release",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
             ]
         },

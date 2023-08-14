@@ -29,40 +29,41 @@ void invoke_event_handler_fun(session_t *const session, xcb_generic_event_t *con
 }
 
 static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event_t *const ev) {
-    xcb_window_t child = ev->window; // assuming child of frame
-    xcb_window_t parent;
+    xcb_window_t win = ev->window;
+    xcb_window_t parent = ev->event; // we can get parent like this as we would have registered substructure-notify on the window
 
     xcb_connection_t *con = session->con;
     xcb_window_t root = session->root;
 
-    LLOG("UnmapNotify for 0x%08x recieved", child);
+    LLOG("UnmapNotify for 0x%08x recieved (ev->event = 0x%08x)", win, parent);
 
-    client_t *client = htable_u32_get(session->clientset.bychild_ht, child, NULL);
+    // if the window's parent is the root window, then we know that win is actually a frame
+    if (ev->event == root) {
+        LINFO("UnmapNotify for 0x%08x: Already direct child of root, no need to reparent to root (window might be a frame or older than awm)", win);
+        return;
+    }
+
+    // otherwise, we assume that win is the child of a frame...
+
+    client_t *client = htable_u32_get(session->clientset.bychild_ht, win, NULL);
     if (!client) {
         // if the window is not managed then there is likely no frame (i.e. it probably hasn't been reparented)
-        LERR("UnmapNotify for 0x%08x: window is not managed", child);
+        LERR("UnmapNotify for 0x%08x: window is not managed", win);
         return;
     }
 
-    // we can check if the parent window is root like this as the window has substructure-notify enabled. If it is root, then we know the window is
-    // one that existed before the window manager, and is currently being reparented. therefore, we don't want to unmap it!
-    if (ev->event == root) {
-        LINFO("UnmapNotify for 0x%08x: IGNORED: reparenting pre-existing (older than wm) window", child);
-        return;
-    }
+    xcb_unmap_window(con, parent); // the handler should return early when it recieves this event as parent's parent is root
+    xcb_flush(con);
 
-    parent = client->parent;
-
-    // attempt to unparent child
-    reparent_child_to_root(con, child, root);
+    // attempt to reparent child to root
+    reparent_child_to_root(con, win, root);
 
     // destroy frame
     xcb_destroy_window(con, parent);
-
     xcb_flush(con);
 
     // unmanage the client: remove all references to it and then free it
-    htable_u32_pop(session->clientset.bychild_ht, child, NULL);
+    htable_u32_pop(session->clientset.bychild_ht, win, NULL);
     htable_u32_pop(session->clientset.byparent_ht, parent, NULL);
     free(client);
 }
