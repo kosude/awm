@@ -9,6 +9,7 @@
 
 #include "window.h"
 #include "events.h"
+#include "utils/x_to_str.h"
 #include "libawm/logging.h"
 
 #include <xcb/xcb_aux.h>
@@ -82,7 +83,7 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
 
     // add window to save set
     if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
-        LERR("When adding window 0x%08x to save-set: X error code: %u", win, err->error_code);
+        LERR("When adding window 0x%08x to save-set: X error code: %u (%s)", win, err->error_code, xerrcode_to_str(err->error_code));
         free(err);
     }
 
@@ -137,7 +138,7 @@ static void register_wm_substructure_events(xcb_connection_t *const con, const x
     xcb_flush(con);
 
     if ((err = xcb_request_check(con, c))) {
-        LFATAL("Another window manager is already running (error code %d)", err->error_code);
+        LFATAL("Another window manager is already running (error code %d: %s)", err->error_code, xerrcode_to_str(err->error_code));
         free(err);
         KILL();
     }

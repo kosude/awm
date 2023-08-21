@@ -9,6 +9,7 @@
 
 #include "sighandle.h"
 #include "manager/session.h"
+#include "utils/x_to_str.h"
 
 xcb_connection_t *con;
 
@@ -27,7 +28,7 @@ int main(void) {
     int scrnum, conerr;
     con = xcb_connect(NULL, &scrnum);
     if ((conerr = xcb_connection_has_error(con))) {
-        LINFO("Error %d encountered making X connection", conerr);
+        LINFO("Error %d (%s) encountered making X connection", conerr, xerrcode_to_str(conerr));
         KILL();
     }
     LINFO("Connected to X on screen %d", scrnum);

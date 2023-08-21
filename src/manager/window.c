@@ -7,6 +7,7 @@
 
 #include "window.h"
 
+#include "utils/x_to_str.h"
 #include "libawm/logging.h"
 
 xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t child) {
@@ -17,7 +18,7 @@ xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, 
     // get client window geometry
     xcb_get_geometry_reply_t *geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, child), &err);
     if (err) {
-        LERR("Error when getting client window geometry: %d", err->error_code);
+        LERR("Error when getting client window geometry: %d (%s)", err->error_code, xerrcode_to_str(err->error_code));
 
         free(err);
         return -1;
@@ -42,7 +43,7 @@ xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, 
     free(geom);
 
     if (err) {
-        LERR("Error when creating frame window: %d", err->error_code);
+        LERR("Error when creating frame window: %d (%s)", err->error_code, xerrcode_to_str(err->error_code));
         xcb_destroy_window(con, frame);
 
         free(err);
@@ -76,29 +77,39 @@ void reparent_child_under_frame(xcb_connection_t *const con, const xcb_window_t 
     // map the child
     vcookies[5] = xcb_map_window_checked(con, child);
 
+    xcb_flush(con);
+
     // check void cookies
     for (uint32_t i = 0; i < sizeof(vcookies) / sizeof(vcookies[0]); i++) {
         xcb_generic_error_t *err = xcb_request_check(con, vcookies[i]);
         if (err) {
-            LERR("When reparenting window 0x%08x under frame 0x%08x: X error code: %u", child, frame, err->error_code);
+            LERR("When reparenting window 0x%08x under frame 0x%08x: X error code: %u (%s)", child, frame, err->error_code,
+                xerrcode_to_str(err->error_code));
 
             free(err);
             return;
         }
         free(err);
     }
+
+    xcb_flush(con);
 }
 
 void reparent_child_to_root(xcb_connection_t *const con, const xcb_window_t child, const xcb_window_t root) {
     xcb_generic_error_t *err;
 
+    xcb_void_cookie_t c = xcb_reparent_window_checked(con, child, root, 0, 0);
+
     // request to reparent under root
     // (does it matter if the offset is 0?)
-    if ((err = xcb_request_check(con, xcb_reparent_window_checked(con, child, root, 0, 0)))) {
-        LERR("When reparenting window 0x%08x to ROOT (0x%08x): X error code: %u", child, root, err->error_code);
+    if ((err = xcb_request_check(con, c))) {
+        LERR("When reparenting window 0x%08x to ROOT (0x%08x): X error code: %u (%s)", child, root, err->error_code,
+            xerrcode_to_str(err->error_code));
 
         free(err);
         return;
     }
     free(err);
+
+    xcb_flush(con);
 }
