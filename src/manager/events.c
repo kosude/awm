@@ -52,8 +52,6 @@ void invoke_event_handler_fun(session_t *const session, xcb_generic_event_t *con
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {
-    LLOG("ConfigureRequest on 0x%08x", ev->window);
-
     xcb_generic_error_t *err = NULL;
 
     xcb_window_t win = ev->window;
@@ -142,6 +140,7 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
     xcb_flush(con);
 
     // attempt to reparent child to root
+    // NOTE: results in BadWindow error, but doesn't seem to cause any actual problems. Maybe this is unnecessary anyways?
     reparent_child_to_root(con, win, root);
 
     // destroy frame

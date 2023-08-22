@@ -81,30 +81,32 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
 
     xcb_generic_error_t *err = NULL;
 
-    // add window to save set
-    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
-        LERR("When adding window 0x%08x to save-set: X error code: %u (%s)", win, err->error_code, xerrcode_to_str(err->error_code));
-        free(err);
-    }
-
     xcb_window_t frame = create_frame(con, scr, win);
     if (frame == (uint32_t) -1) {
         // an error occurred
         return 0;
     }
 
-    // reparent window
-    reparent_child_under_frame(con, win, frame);
-
     client_t *client = malloc(sizeof(client_t));
     client->child = win;
     client->parent = frame;
 
     if (!clientset_add_client(&clientset, client)) {
-        // TODO: sort out a better fallback if we can't store the managed client - should the frame be deleted?
+        // if we can't keep track of the client then issues will arise later, so best to just avoid trying to manage the window
         free(client);
-        LERR("Could not keep client in session managed set");
+        xcb_destroy_window(con, frame);
+
+        return 0;
     }
+
+    // add window to save set
+    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
+        LERR("When adding window 0x%08x to save-set: X error code: %u (%s)", win, err->error_code, xerrcode_to_str(err->error_code));
+        free(err);
+    }
+
+    // reparent window
+    reparent_child_under_frame(con, win, frame);
 
     return 1;
 }
@@ -160,7 +162,7 @@ static void manage_existing_windows(session_t *const session) {
     xcb_window_t *chld = xcb_query_tree_children(tree);
     for (int i = 0; i < chldlen; i++) {
         if (!session_manage_window(session, chld[i])) {
-            LERR("Failed to register window %d for managing", chld[i]);
+            LERR("Could not manage window 0x%08x", chld[i]);
             continue;
         }
     }
