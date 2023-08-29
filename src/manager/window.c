@@ -37,10 +37,9 @@ xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, 
         geom->width + borderbuf_x, geom->height + borderbuf_y,
         0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, root_visual,
-        XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK,
+        XCB_CW_BACK_PIXEL,
         (uint32_t []) {
             framecol,
-            XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
         }
     ));
 
@@ -59,10 +58,6 @@ xcb_window_t create_frame(xcb_connection_t *const con, xcb_screen_t *const scr, 
 
 void reparent_child_under_frame(xcb_connection_t *const con, const xcb_window_t child, const xcb_window_t frame) {
     xcb_void_cookie_t vcookies[5];
-
-    // // request to recieve events on frame
-    // vcookies[0] = xcb_change_window_attributes_checked(con, frame, XCB_CW_EVENT_MASK,
-    //     (uint32_t[]) { XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS });
 
     // set the border width of the child window to 0, as we have our own
     vcookies[0] = xcb_configure_window_checked(con, child,

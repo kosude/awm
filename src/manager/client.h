@@ -32,6 +32,14 @@ typedef struct client_t {
 } client_t;
 
 /**
+ * Register/grab buttons for click events (e.g. raise+focus on click)
+ */
+void client_register_events(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
+/**
  * A data type representing a set of managed clients.
  */
 typedef struct clientset_t {

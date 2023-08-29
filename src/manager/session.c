@@ -113,6 +113,9 @@ uint8_t session_manage_window(session_t *const session, xcb_window_t win) {
     // reparent window
     reparent_child_under_frame(con, win, frame);
 
+    // register event masks on client
+    client_register_events(con, client);
+
     return 1;
 }
 
@@ -131,6 +134,7 @@ void session_handle_next_event(session_t *const session) {
     if (!ev) {
         return;
     }
+
     invoke_event_handler_fun(session, ev);
 
     free(ev);

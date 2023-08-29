@@ -178,14 +178,29 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     xcb_window_t win = ev->event;
 
     xcb_connection_t *con = session->con;
-    clientset_t cset = session->clientset;
 
-    // attempt to get client, if there is none, then the window is unmanaged so early return.
-    client_t *client = htable_u32_get(cset.byparent_ht, win, NULL);
+    clientset_t cset = session->clientset;
+    client_t *client;
+
+    // checks if the window is a frame (parent) window,
+    client = htable_u32_get(cset.byparent_ht, win, NULL);
+    if (client) {
+        // raise frame window on click (win is the frame)
+        raise_window(con, win);
+
+        return;
+    }
+
+    // now win should be the child. if not, then it isn't being managed.
+    client = htable_u32_get(cset.bychild_ht, win, NULL);
     if (!client) {
         return;
     }
 
-    // raise window on click
-    raise_window(con, win);
+    // we want to raise the frame not the child
+    xcb_window_t frame = client->parent;
+    raise_window(con, frame);
+
+    xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
+    xcb_flush(con);
 }
