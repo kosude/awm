@@ -78,29 +78,46 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
     COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_Y, y);
     COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_WIDTH, width);
     COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_HEIGHT, height);
-    COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_BORDER_WIDTH, border_width);
     COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_SIBLING, sibling);
     COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_STACK_MODE, stack_mode);
+    mask |= XCB_CONFIG_WINDOW_BORDER_WIDTH; values[c++] = 0; // set border width to 0
 
-    if ((err = xcb_request_check(con, xcb_configure_window_checked(con, win, mask, values)))) {
-        LERR("Failed to configure client window (error code %d: %s)", err->error_code, xerrcode_to_str(err->error_code));
+    client_t *client = htable_u32_get(cset.bychild_ht, win, NULL);
+
+    // if the window is not managed then apply changes to the client window and leave it at that.
+    if (!client) {
+        if ((err = xcb_request_check(con, xcb_configure_window_checked(con, win, mask, values)))) {
+            LERR("Failed to configure client window 0x%08x (error code %d: %s)", win, err->error_code, xerrcode_to_str(err->error_code));
+            free(err);
+
+            return;
+        }
+        xcb_flush(con);
+
+        return;
+    }
+
+    // store values in client
+    client->x = ev->x;
+    client->y = ev->y;
+    client->width = ev->width;
+    client->height = ev->height;
+
+    // get frame
+    xcb_window_t frame = client->parent;
+
+    // note that ConfigureRequest events aren't recieved when we configure a window ourselves
+    if ((err = xcb_request_check(con, xcb_configure_window_checked(con, frame, mask, values)))) {
+        LERR("Failed to configure frame (0x%08x) of client window 0x%08x (error code %d: %s)",
+            frame, win, err->error_code, xerrcode_to_str(err->error_code));
         free(err);
 
         return;
     }
     xcb_flush(con);
-
-    // if the cset includes win as a child, then we know it is mapped
-    // therefore win is framed and so we need to additionally configure the frame.
-    client_t *client = htable_u32_get(cset.bychild_ht, win, NULL);
-    if (client) {
-        // TODO configure frame
-    }
 }
 
 static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {
-    LLOG("MapRequest on 0x%08x", ev->window);
-
     xcb_window_t win = ev->window;
     xcb_connection_t *con = session->con;
 
@@ -114,8 +131,6 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
 }
 
 static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event_t *const ev) {
-    LLOG("UnmapNotify on 0x%08x", ev->window);
-
     xcb_window_t win = ev->window;
     xcb_window_t parent = ev->event; // we can get parent like this as we would have registered substructure-notify on the window
 

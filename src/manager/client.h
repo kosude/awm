@@ -24,6 +24,11 @@ typedef struct client_t {
     xcb_window_t child;
     /** The parent window, aka the frame. */
     xcb_window_t parent;
+
+    /** Client position (top-left corner) as of last configure */
+    uint32_t x, y;
+    /** Client size as of last configure */
+    uint32_t width, height;
 } client_t;
 
 /**
