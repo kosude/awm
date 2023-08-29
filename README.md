@@ -1,4 +1,4 @@
-# <img src="res/wm_logo.svg" height=40>
+# <img src="res/wm_logo_colours.svg" height=40>
 
 ![Lines of code](https://www.aschey.tech/tokei/github.com/kosude/awm)
 
