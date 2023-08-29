@@ -41,6 +41,14 @@ void reparent_child_to_root(
     const xcb_window_t root
 );
 
+/**
+ * Raise the specified window to the top of the stack.
+ */
+void raise_window(
+    xcb_connection_t *const con,
+    const xcb_window_t win
+);
+
 #ifdef __cplusplus
     }
 #endif

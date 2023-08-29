@@ -35,6 +35,14 @@ static void handle_unmap_notify(
     xcb_unmap_notify_event_t *const ev
 );
 
+/**
+ * Handle an event of type XCB_BUTTON_PRESS.
+ */
+static void handle_button_press(
+    session_t *const session,
+    xcb_button_press_event_t *const ev
+);
+
 void invoke_event_handler_fun(session_t *const session, xcb_generic_event_t *const event) {
     switch (event->response_type) {
         case XCB_CONFIGURE_REQUEST:
@@ -45,6 +53,9 @@ void invoke_event_handler_fun(session_t *const session, xcb_generic_event_t *con
             return;
         case XCB_UNMAP_NOTIFY:
             handle_unmap_notify(session, (xcb_unmap_notify_event_t *) event);
+            return;
+        case XCB_BUTTON_PRESS:
+            handle_button_press(session, (xcb_button_press_event_t *) event);
             return;
         default:
             return;
@@ -92,7 +103,6 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
 
             return;
         }
-        xcb_flush(con);
 
         return;
     }
@@ -114,7 +124,6 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
 
         return;
     }
-    xcb_flush(con);
 }
 
 static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {
@@ -127,7 +136,6 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
     }
 
     xcb_map_window(con, win);
-    xcb_flush(con);
 }
 
 static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event_t *const ev) {
@@ -152,7 +160,6 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
     }
 
     xcb_unmap_window(con, parent); // the handler should return early when it recieves this event as parent's parent is root
-    xcb_flush(con);
 
     // attempt to reparent child to root
     // NOTE: results in BadWindow error, but doesn't seem to cause any actual problems. Maybe this is unnecessary anyways?
@@ -160,10 +167,25 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
 
     // destroy frame
     xcb_destroy_window(con, parent);
-    xcb_flush(con);
 
     // unmanage the client: remove all references to it and then free it
     htable_u32_pop(cset.bychild_ht, win, NULL);
     htable_u32_pop(cset.byparent_ht, parent, NULL);
     free(client);
+}
+
+static void handle_button_press(session_t *const session, xcb_button_press_event_t *const ev) {
+    xcb_window_t win = ev->event;
+
+    xcb_connection_t *con = session->con;
+    clientset_t cset = session->clientset;
+
+    // attempt to get client, if there is none, then the window is unmanaged so early return.
+    client_t *client = htable_u32_get(cset.byparent_ht, win, NULL);
+    if (!client) {
+        return;
+    }
+
+    // raise window on click
+    raise_window(con, win);
 }

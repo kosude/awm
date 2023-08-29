@@ -32,7 +32,6 @@ static void exit_cb(void) {
     LINFO("Window manager process terminating...");
 
     session_dealloc(cb_data.session);
-
     xcb_disconnect(cb_data.con); // this must be done regardless of if there was an issue with connecting or not
 }
 

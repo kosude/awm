@@ -63,7 +63,7 @@ if [[ -z "$DISPLAY_NUM" ]] ; then
 fi
 
 # start xephyr environment
-$(command -v Xephyr) :$DISPLAY_NUM -screen 1440x1080 &
+$(command -v Xephyr) :$DISPLAY_NUM -screen 640x480 &
 XEPHYR_PID=$!
 
 # wait for the xephyr environment X server to be available

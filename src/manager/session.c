@@ -62,7 +62,12 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     session.clientset = clientset_init();
 
     // manage windows that were created before wm start
-    manage_existing_windows(&session);
+    // we grab the server while doing this so the state doesn't change halfway through (windows don't change)
+    xcb_grab_server(con);
+    {
+        manage_existing_windows(&session);
+    }
+    xcb_ungrab_server(con);
 
     return session;
 }
