@@ -89,6 +89,9 @@ void reparent_child_under_frame(xcb_connection_t *const con, const xcb_window_t 
     }
 
     xcb_flush(con);
+
+    // focus new window
+    window_focus(con, child);
 }
 
 void reparent_child_to_root(xcb_connection_t *const con, const xcb_window_t child, const xcb_window_t root) {
@@ -109,7 +112,22 @@ void reparent_child_to_root(xcb_connection_t *const con, const xcb_window_t chil
     xcb_flush(con);
 }
 
-void raise_window(xcb_connection_t *const con, const xcb_window_t win) {
+void window_focus(xcb_connection_t *const con, const xcb_window_t win) {
+    xcb_generic_error_t *err;
+
+    xcb_void_cookie_t c = xcb_set_input_focus_checked(con, XCB_INPUT_FOCUS_NONE, win, XCB_CURRENT_TIME);
+
+    if ((err = xcb_request_check(con, c))) {
+        LERR("When setting focus to window 0x%08x: X error code: %u (%s)", win, err->error_code, xerrcode_to_str(err->error_code));
+
+        free(err);
+        return;
+    }
+
+    xcb_flush(con);
+}
+
+void window_raise(xcb_connection_t *const con, const xcb_window_t win) {
     xcb_generic_error_t *err;
 
     xcb_void_cookie_t c = xcb_configure_window_checked(con, win, XCB_CONFIG_WINDOW_STACK_MODE, (uint32_t[]) { XCB_STACK_MODE_ABOVE });

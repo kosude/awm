@@ -31,7 +31,7 @@ void client_register_events(xcb_connection_t *const con, client_t *const client)
 
     // grab mouse buttons on child for click to focus+raise
     // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.
-    //   this allows us to replay pointer/button events, propogating them to the client so they aren't lost (and the user can still click on it)
+    //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
     //   for more, see https://unix.stackexchange.com/a/397466 :))
     vcookies[1] = xcb_grab_button_checked(con, 0, child,
         XCB_EVENT_MASK_BUTTON_PRESS, XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,

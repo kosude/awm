@@ -42,9 +42,17 @@ void reparent_child_to_root(
 );
 
 /**
+ * Focus the specified window for recieving input.
+ */
+void window_focus(
+    xcb_connection_t *const con,
+    const xcb_window_t win
+);
+
+/**
  * Raise the specified window to the top of the stack.
  */
-void raise_window(
+void window_raise(
     xcb_connection_t *const con,
     const xcb_window_t win
 );

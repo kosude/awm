@@ -182,11 +182,14 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     clientset_t cset = session->clientset;
     client_t *client;
 
+    // TODO: focus on none if the root window is clicked
+    window_focus(con, win);
+
     // checks if the window is a frame (parent) window,
     client = htable_u32_get(cset.byparent_ht, win, NULL);
     if (client) {
         // raise frame window on click (win is the frame)
-        raise_window(con, win);
+        window_raise(con, win);
 
         return;
     }
@@ -199,8 +202,9 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
 
     // we want to raise the frame not the child
     xcb_window_t frame = client->parent;
-    raise_window(con, frame);
+    window_raise(con, frame);
 
+    // propagate click events to client so the application can process them as usual
     xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
     xcb_flush(con);
 }
