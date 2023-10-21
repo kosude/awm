@@ -40,6 +40,7 @@ int main(void) {
     session = session_init(con, scrnum);
 
     for (;;) {
+        session_handle_next_event(&session);
     }
 
     return 0;

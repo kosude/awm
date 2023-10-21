@@ -43,6 +43,13 @@ void session_dealloc(
     session_t *const session
 );
 
+/**
+ * Poll the next event recieved from the X server and handle it appropriately.
+ */
+void session_handle_next_event(
+    session_t *const session
+);
+
 #ifdef __cplusplus
     }
 #endif

@@ -43,3 +43,24 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
 
 void session_dealloc(session_t *const session) {
 }
+
+void session_handle_next_event(session_t *const session) {
+    xcb_connection_t *con = session->con;
+
+    xcb_flush(con);
+
+    if (xcb_connection_has_error(con)) {
+        LFATAL("The X connection was unexpectedly interrupted (did the X server terminate/crash?)");
+        KILL();
+    }
+
+    // handle the next event if not NULL
+    xcb_generic_event_t *ev = xcb_wait_for_event(con);
+    if (!ev) {
+        return;
+    }
+
+    LLOG("Event recieved: %s", xevent_to_str(ev->response_type));
+
+    free(ev);
+}
