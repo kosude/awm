@@ -1,5 +1,6 @@
 set(SRCS
     "init/main.c"
+    "init/sighandle.c"
 
     "util/x_to_str.c"
 )
