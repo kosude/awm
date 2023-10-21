@@ -2,6 +2,8 @@ set(SRCS
     "init/main.c"
     "init/sighandle.c"
 
+    "manager/session.c"
+
     "util/x_to_str.c"
 )
 set(TARGET_NAME "awm")
@@ -16,7 +18,7 @@ target_link_libraries(${TARGET_NAME} "libawm")
 
 # find and link to xcb libs
 find_package(XCB QUIET REQUIRED
-    COMPONENTS XCB)
+    COMPONENTS XCB AUX)
 target_link_libraries(${TARGET_NAME}
     ${XCB_LIBRARIES})
 target_include_directories(${TARGET_NAME}

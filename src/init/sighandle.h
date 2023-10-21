@@ -13,6 +13,7 @@
 #endif
 
 typedef struct xcb_connection_t xcb_connection_t;
+typedef struct session_t session_t;
 
 /**
  * Data to be passed to signal handling callback functions.
@@ -20,6 +21,9 @@ typedef struct xcb_connection_t xcb_connection_t;
 typedef struct signal_callback_data {
     /** Connection which will be disconnected on exit. */
     xcb_connection_t *con;
+
+    /** Session ptr to deallocate */
+    session_t *session;
 } signal_callback_data;
 
 /**

@@ -5,30 +5,39 @@
  *   See the LICENCE file for more information.
  */
 
-#include "libawm.h"
+#include "libawm/logging.h"
 
 #include "init/sighandle.h"
+#include "manager/session.h"
 #include "util/x_to_str.h"
 
 #include <xcb/xcb.h>
 
 xcb_connection_t *con;
 
+session_t session;
+
 int main(void) {
+    int scrnum, conerr;
+
     LINFO("awm %d-bit", (int) (8 * sizeof(void *)));
 
     // set callbacks for controlled exits + cleanup
     set_signal_callbacks((signal_callback_data) {
-        .con = con
+        .con = con,
+        .session = &session
     });
 
     // connect to X server
-    int scrnum, conerr;
     con = xcb_connect(NULL, &scrnum);
     if ((conerr = xcb_connection_has_error(con))) {
         LFATAL("Failed to make X connection: error %d (%s)", conerr, xerrcode_to_str(conerr));
         KILL();
     }
+    LINFO("Connected to X on screen %d", scrnum);
+
+    // initialise window manager session
+    session = session_init(con, scrnum);
 
     for (;;) {
     }
