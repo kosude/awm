@@ -5,10 +5,16 @@
  *   See the LICENCE file for more information.
  */
 
-#include <stdio.h>
+#include "libawm.h"
 
-int main(int argc, char **argv) {
-    printf("Hello awm\n");
+int main(void) {
+    LINFO("awm %d-bit", (int) (8 * sizeof(void *)));
+
+    LLOG("Debug message (doesnt show in release builds)");
+    LINFO("Info message");
+    LWARN("Warning message");
+    LERR("Error message");
+    LFATAL("Fatal error");
 
     return 0;
 }
