@@ -1,5 +1,7 @@
 set(SRCS
     "init/main.c"
+
+    "util/x_to_str.c"
 )
 set(TARGET_NAME "awm")
 
