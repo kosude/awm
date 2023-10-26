@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __utils__x_to_str_h
-#define __utils__x_to_str_h
+#ifndef __libawm__xstr_h
+#define __libawm__xstr_h
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -17,21 +17,21 @@
 /**
  * Convert an X error code to a formatted string containing its name/label.
  */
-const char *xerrcode_to_str(
+const char *xerrcode_str(
     uint8_t ecode
 );
 
 /**
  * Convert an X request to a formatted string containing its name/label.
  */
-const char *xrequest_to_str(
+const char *xrequest_str(
     uint8_t request
 );
 
 /**
  * Convert an X event to a formatted string containing its name/label.
  */
-const char *xevent_to_str(
+const char *xevent_str(
     uint8_t event
 );
 

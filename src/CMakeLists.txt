@@ -3,8 +3,6 @@ set(SRCS
     "init/sighandle.c"
 
     "manager/session.c"
-
-    "util/x_to_str.c"
 )
 set(TARGET_NAME "awm")
 

@@ -12,7 +12,9 @@
     extern "C" {
 #endif
 
+#include "libawm/htable.h"
 #include "libawm/logging.h"
+#include "libawm/xstr.h"
 
 #ifdef __cplusplus
     }

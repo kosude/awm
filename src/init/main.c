@@ -6,10 +6,10 @@
  */
 
 #include "libawm/logging.h"
+#include "libawm/xstr.h"
 
 #include "init/sighandle.h"
 #include "manager/session.h"
-#include "util/x_to_str.h"
 
 #include <xcb/xcb.h>
 
@@ -31,7 +31,7 @@ int main(void) {
     // connect to X server
     con = xcb_connect(NULL, &scrnum);
     if ((conerr = xcb_connection_has_error(con))) {
-        LFATAL("Failed to make X connection: error %d (%s)", conerr, xerrcode_to_str(conerr));
+        LFATAL("Failed to make X connection: error %d (%s)", conerr, xerrcode_str(conerr));
         KILL();
     }
     LINFO("Connected to X on screen %d", scrnum);

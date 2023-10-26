@@ -7,8 +7,8 @@
 
 #include "session.h"
 
-#include "util/x_to_str.h"
 #include "libawm/logging.h"
+#include "libawm/xstr.h"
 
 #include <xcb/xcb_aux.h>
 
@@ -60,7 +60,7 @@ void session_handle_next_event(session_t *const session) {
         return;
     }
 
-    LLOG("Event recieved: %s", xevent_to_str(ev->response_type));
+    LLOG("Event recieved: %s", xevent_str(ev->response_type));
 
     free(ev);
 }

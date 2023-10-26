@@ -5,7 +5,7 @@
  *   See the LICENCE file for more information.
  */
 
-#include "x_to_str.h"
+#include "libawm/xstr.h"
 
 // string values courtesy of i3wm:
 // https://github.com/i3/i3/blob/023ec870a2b35978ec66ee9f03f5d9604d396b34/mainx.c#L468
@@ -209,15 +209,15 @@ static const char *str_ev[] = {
     "MappingNotify",
 };
 
-const char *xerrcode_to_str(uint8_t ecode) {
+const char *xerrcode_str(uint8_t ecode) {
     return str_err[ecode];
 }
 
-const char *xrequest_to_str(uint8_t request) {
+const char *xrequest_str(uint8_t request) {
     return str_req[request];
 }
 
-const char *xevent_to_str(uint8_t event) {
+const char *xevent_str(uint8_t event) {
     // the 8th bit is enabled if the event was sent with SendEvent (which ignores grabs among other behaviour thingys)
     // see more at https://www.x.org/releases/current/doc/man/man3/XSendEvent.3.xhtml
     // we ignore this bit here as the event itself is still the same so the same string can be returned.

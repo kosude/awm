@@ -1,5 +1,6 @@
 set(SRCS
     "lib/htable.c"
+    "lib/xstr.c"
 )
 set(TARGET_NAME "libawm")
 
