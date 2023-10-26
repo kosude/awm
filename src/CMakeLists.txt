@@ -2,6 +2,8 @@ set(SRCS
     "init/main.c"
     "init/sighandle.c"
 
+    # "manager/client.c"
+    "manager/clientset.c"
     "manager/session.c"
 )
 set(TARGET_NAME "awm")

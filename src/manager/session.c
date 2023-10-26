@@ -38,10 +38,16 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     root = scr->root;
     session.root = root;
 
+    // initialise client set
+    session.clientset = clientset_init();
+
     return session;
 }
 
 void session_dealloc(session_t *const session) {
+    clientset_t clientset = session->clientset;
+
+    clientset_dealloc(&clientset);
 }
 
 void session_handle_next_event(session_t *const session) {

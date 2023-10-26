@@ -46,7 +46,6 @@ struct htable_u32* htable_u32_new(void) {
 	if (!(ht = calloc(1, sizeof(struct htable_u32)))) {
         printf("calloc()");
         exit(1);
-
 	}
 	return ht;
 }

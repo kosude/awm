@@ -12,6 +12,8 @@
     extern "C" {
 #endif
 
+#include "manager/clientset.h"
+
 #include <xcb/xcb.h>
 
 /**
@@ -24,6 +26,9 @@ typedef struct session_t {
     xcb_screen_t *scr;
     /** The root X window. */
     xcb_window_t root;
+
+    /** Set of client references. */
+    clientset_t clientset;
 } session_t;
 
 /**
