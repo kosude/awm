@@ -12,6 +12,13 @@
 
 #include <xcb/xcb_aux.h>
 
+/**
+ * Manage all currently existing windows in the X display on behalf of `session`.
+ */
+static void manage_existing_clients(
+    session_t *const session
+);
+
 session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     session_t session;
 
@@ -41,6 +48,14 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // initialise client set
     session.clientset = clientset_init();
 
+    // manage windows/clients that were created before wm start
+    // we grab the server while doing this so the state doesn't change halfway through
+    xcb_grab_server(con);
+    {
+        manage_existing_clients(&session);
+    }
+    xcb_ungrab_server(con);
+
     return session;
 }
 
@@ -69,4 +84,38 @@ void session_handle_next_event(session_t *const session) {
     LLOG("Event recieved: %s", xevent_str(ev->response_type));
 
     free(ev);
+}
+
+uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
+    // NOT_IMPLEMENTED
+    return 1;
+}
+
+static void manage_existing_clients(session_t *const session) {
+    xcb_connection_t *con = session->con;
+    xcb_window_t root = session->root;
+
+    // get window tree
+    xcb_query_tree_reply_t *tree = xcb_query_tree_reply(con,
+        xcb_query_tree(con, root), NULL);
+
+    // get child windows of the root
+    int chldlen = xcb_query_tree_children_length(tree);
+    if (!chldlen) {
+        // no existing windows
+        goto out;
+    }
+    LLOG("Found %d existing X windows", chldlen);
+
+    // manage each existing window
+    xcb_window_t *chld = xcb_query_tree_children(tree);
+    for (int i = 0; i < chldlen; i++) {
+        if (!session_manage_client(session, chld[i])) {
+            LERR("Could not manage existing window 0x%08x", chld[i]);
+            continue;
+        }
+    }
+
+out:
+    free(tree);
 }

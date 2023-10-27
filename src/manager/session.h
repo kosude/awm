@@ -55,6 +55,14 @@ void session_handle_next_event(
     session_t *const session
 );
 
+/**
+ * Manage the given X client `win` under session `session` - returns 0 if failed.
+ */
+uint8_t session_manage_client(
+    session_t *const session,
+    xcb_window_t win
+);
+
 #ifdef __cplusplus
     }
 #endif
