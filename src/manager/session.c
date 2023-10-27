@@ -11,9 +11,21 @@
 #include "libawm/xstr.h"
 
 #include "manager/client.h"
+#include "manager/window.h"
 
 #include <xcb/xcb_aux.h>
 #include <string.h>
+
+/**
+ * Register events from a session's root window in order to intercept requests from top level windows.
+ *
+ * As only one X client can listen to substructure redirection on the root window at a time, we consider another
+ * concurrent WM to be an error.
+ */
+static void register_wm_substructure_events(
+    xcb_connection_t *const con,
+    const xcb_window_t root
+);
 
 /**
  * Manage all currently existing windows in the X display on behalf of `session`.
@@ -47,6 +59,9 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // get root window from screen
     root = scr->root;
     session.root = root;
+
+    // listen to root events
+    register_wm_substructure_events(con, root);
 
     // initialise client set
     session.clientset = clientset_init();
@@ -93,9 +108,19 @@ void session_handle_next_event(session_t *const session) {
 
 uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
     xcb_connection_t *con = session->con;
+    xcb_screen_t *scr = session->scr;
+
     clientset_t clientset = session->clientset;
 
-    xcb_generic_error_t *err = NULL;
+    xcb_generic_error_t *err;
+
+    // TODO: consider windows that shouldn't be framed like this (dropdowns, fullscreen, etc)
+    //       i.e. get window X properties (ICCCM + EWMH)
+    xcb_window_t frame = window_frame_create(con, scr, win);
+    if (frame == (xcb_window_t) -1) {
+        // error
+        return 0;
+    }
 
     // allocate client object
     client_t *client = malloc(sizeof(client_t));
@@ -103,9 +128,11 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
         LFATAL("malloc() fault");
         KILL();
     }
-
     client->inner = win;
-    client->frame = 0; // NOT_IMPLEMENTED: generating frame
+    client->frame = frame;
+
+    // TODO: get current client properties
+    // client->properties = ...
 
     if (!clientset_push(&clientset, client)) {
         // if we can't keep track of the client then issues will arise later, so best to just avoid trying to manage the window
@@ -118,13 +145,33 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
     if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_DELETE, win)))) {
         LERR("When adding window 0x%08x to save-set: error %u (%s)", win, err->error_code, xerrcode_str(err->error_code));
 
-        free(err);\
+        free(err);
         err = NULL;
     }
+
+    // reparent win under frame
+    window_reparent(con, win, frame);
 
     LLOG("Session managed X window 0x%08x", win);
 
     return 1;
+}
+
+static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
+    xcb_generic_error_t *err;
+
+    // register root window to intercept all top-level events
+    xcb_void_cookie_t c = xcb_change_window_attributes_checked(con, root, XCB_CW_EVENT_MASK,
+        (uint32_t[]) { XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT });
+
+    xcb_flush(con);
+
+    if ((err = xcb_request_check(con, c))) {
+        LFATAL("Another window manager is already running: error %u (%s)", err->error_code, xerrcode_str(err->error_code));
+
+        free(err);
+        KILL();
+    }
 }
 
 static void manage_existing_clients(session_t *const session) {

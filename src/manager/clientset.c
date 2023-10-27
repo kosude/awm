@@ -13,6 +13,10 @@
 
 #include <string.h>
 
+static void free_client_cb(
+    void *const client
+);
+
 clientset_t clientset_init(void) {
     clientset_t set;
     set.byinner_ht = htable_u32_new();
@@ -26,8 +30,8 @@ void clientset_dealloc(clientset_t *const set) {
         *iht = set->byinner_ht,
         *fht = set->byframe_ht;
 
-    htable_u32_free(iht, NULL);
-    htable_u32_free(fht, NULL);
+    htable_u32_free(iht, free_client_cb);
+    htable_u32_free(fht, NULL); // avoid double-free errors on clients
 
     memset(set, 0, sizeof(clientset_t));
 }
@@ -56,4 +60,8 @@ uint8_t clientset_push(clientset_t *const set, client_t *const client) {
     }
 
     return 0;
+}
+
+static void free_client_cb(void *const client) {
+    free(client);
 }
