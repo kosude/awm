@@ -10,7 +10,10 @@
 #include "libawm/logging.h"
 #include "libawm/xstr.h"
 
+#include "manager/client.h"
+
 #include <xcb/xcb_aux.h>
+#include <string.h>
 
 /**
  * Manage all currently existing windows in the X display on behalf of `session`.
@@ -63,6 +66,8 @@ void session_dealloc(session_t *const session) {
     clientset_t clientset = session->clientset;
 
     clientset_dealloc(&clientset);
+
+    memset(session, 0, sizeof(session_t));
 }
 
 void session_handle_next_event(session_t *const session) {
@@ -87,7 +92,38 @@ void session_handle_next_event(session_t *const session) {
 }
 
 uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
-    // NOT_IMPLEMENTED
+    xcb_connection_t *con = session->con;
+    clientset_t clientset = session->clientset;
+
+    xcb_generic_error_t *err = NULL;
+
+    // allocate client object
+    client_t *client = malloc(sizeof(client_t));
+    if (!client) {
+        LFATAL("malloc() fault");
+        KILL();
+    }
+
+    client->inner = win;
+    client->frame = 0; // NOT_IMPLEMENTED: generating frame
+
+    if (!clientset_push(&clientset, client)) {
+        // if we can't keep track of the client then issues will arise later, so best to just avoid trying to manage the window
+        free(client);
+
+        return 0;
+    }
+
+    // add window to save set - will be remapped if the window manager is killed
+    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_DELETE, win)))) {
+        LERR("When adding window 0x%08x to save-set: error %u (%s)", win, err->error_code, xerrcode_str(err->error_code));
+
+        free(err);\
+        err = NULL;
+    }
+
+    LLOG("Session managed X window 0x%08x", win);
+
     return 1;
 }
 
@@ -102,8 +138,8 @@ static void manage_existing_clients(session_t *const session) {
     // get child windows of the root
     int chldlen = xcb_query_tree_children_length(tree);
     if (!chldlen) {
-        // no existing windows
-        goto out;
+        // no existing windows, early return
+        goto cleanup;
     }
     LLOG("Found %d existing X windows", chldlen);
 
@@ -116,6 +152,6 @@ static void manage_existing_clients(session_t *const session) {
         }
     }
 
-out:
+cleanup:
     free(tree);
 }
