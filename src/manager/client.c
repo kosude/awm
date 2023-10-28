@@ -10,7 +10,149 @@
 #include "libawm/logging.h"
 #include "libawm/xstr.h"
 
-void client_register_events(xcb_connection_t *const con, client_t *const client) {
+/**
+ * Create a frame for the given client.
+ */
+static xcb_window_t frame_create(
+    xcb_connection_t *const con,
+    xcb_screen_t *const scr,
+    client_t *const client
+);
+
+/**
+ * Register/grab buttons for click events (e.g. raise+focus on click) as well as events on the frame of the given client if applicable
+ */
+static void client_register_events(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
+client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t inner) {
+    xcb_generic_error_t *err;
+
+    client_t client;
+
+    client.inner = inner;
+    client.frame = frame_create(con, scr, &client);
+
+    if (client.frame == (xcb_window_t) -1) {
+        // error
+        goto out;
+    }
+
+    xcb_window_t frame = client.frame;
+
+    // TODO: get current client properties
+    // client.properties = ...
+
+    // reparent inner under frame...
+    xcb_void_cookie_t rcookies[3];
+
+    // set the border width of the inner window to 0 as we have our own
+    rcookies[0] = xcb_configure_window_checked(con, inner,
+        XCB_CONFIG_WINDOW_BORDER_WIDTH, (uint32_t[]) { 0 });
+
+    // reparent inner window under frame
+    // TODO stop hardcoding position
+    rcookies[1] = xcb_reparent_window_checked(con, inner, frame, 4, 28);
+
+    // map frame
+    rcookies[2] = xcb_map_window_checked(con, frame);
+
+    xcb_flush(con);
+
+    // check void cookies from reparenting
+    for (uint32_t i = 0; i < sizeof(rcookies) / sizeof(rcookies[0]); i++) {
+        err = xcb_request_check(con, rcookies[i]);
+        if (err) {
+            LERR("When reparenting inner 0x%08x under frame 0x%08x: error %u (%s)", inner, frame, err->error_code, xerrcode_str(err->error_code));
+
+            free(err);
+            goto out;
+        }
+    }
+
+    // register event masks on client
+    client_register_events(con, &client);
+
+out:
+    return client;
+}
+
+void client_frame_destroy(xcb_connection_t *const con, client_t *const client, const xcb_window_t root) {
+    xcb_generic_error_t *err;
+
+    xcb_window_t inner = client->inner;
+    xcb_window_t frame = client->frame;
+
+    // request to reparent under root
+    // NOTE: results in BadWindow error, but doesn't seem to cause any actual problems. Maybe this is unnecessary anyways?
+    xcb_void_cookie_t c = xcb_reparent_window_checked(con, inner, root, 0, 0);
+
+    xcb_flush(con);
+
+    if ((err = xcb_request_check(con, c))) {
+        LERR("When unparenting window 0x%08x to root (0x%08x): error %u (%s)", inner, root, err->error_code, xerrcode_str(err->error_code));
+
+        free(err);
+        return;
+    }
+
+    // destroy frame
+    xcb_destroy_window(con, frame);
+    client->frame = 0;
+}
+
+static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *const scr, client_t *const client) {
+    xcb_window_t inner = client->inner;
+
+    xcb_window_t root = scr->root;
+    xcb_window_t rootvis = scr->root_visual;
+
+    xcb_generic_error_t *err = NULL;
+
+    // get inner window geometry
+    xcb_get_geometry_reply_t *geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, inner), &err);
+    if (err) {
+        LERR("When getting client window geometry: error %u (%s)", err->error_code, xerrcode_str(err->error_code));
+
+        free(err);
+        return -1;
+    }
+
+    // TODO: stop hardcoding these values
+    uint16_t borderbuf_x = 8, borderbuf_y = 32;
+    uint32_t framecol = 0xff0000;
+
+    xcb_window_t frame = xcb_generate_id(con);
+
+    // create frame window
+    err = xcb_request_check(con, xcb_create_window_checked(
+        con, XCB_COPY_FROM_PARENT, frame, root,
+        geom->x, geom->y,
+        geom->width + borderbuf_x, geom->height + borderbuf_y,
+        0,
+        XCB_WINDOW_CLASS_INPUT_OUTPUT, rootvis,
+        XCB_CW_BACK_PIXEL,
+        (uint32_t []) {
+            framecol,
+        }
+    ));
+
+    free(geom);
+
+    if (err) {
+        LERR("Failed to create frame window for inner 0x%08x: error %u (%s)", inner, err->error_code, xerrcode_str(err->error_code));
+        xcb_destroy_window(con, frame);
+
+        free(err);
+        return -1;
+    }
+
+    return frame;
+}
+
+static void client_register_events(xcb_connection_t *const con, client_t *const client) {
     xcb_generic_error_t *err;
     xcb_void_cookie_t vcookies[2];
 

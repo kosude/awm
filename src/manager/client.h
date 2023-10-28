@@ -38,11 +38,21 @@ typedef struct client_t {
 } client_t;
 
 /**
- * Register/grab buttons for click events (e.g. raise+focus on click)
+ * Create a framed client to hold the given inner window - the window will be reparented under the new frame.
  */
-void client_register_events(
+client_t client_init_framed(
     xcb_connection_t *const con,
-    client_t *const client
+    xcb_screen_t *const scr,
+    const xcb_window_t inner
+);
+
+/**
+ * Destroy the frame in the given client and reparent the inner window to root.
+ */
+void client_frame_destroy(
+    xcb_connection_t *const con,
+    client_t *const client,
+    const xcb_window_t root
 );
 
 #ifdef __cplusplus

@@ -6,7 +6,6 @@ set(SRCS
     "manager/clientset.c"
     "manager/events.c"
     "manager/session.c"
-    "manager/window.c"
 )
 set(TARGET_NAME "awm")
 

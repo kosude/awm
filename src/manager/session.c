@@ -12,7 +12,6 @@
 
 #include "manager/client.h"
 #include "manager/events.h"
-#include "manager/window.h"
 
 #include <xcb/xcb_aux.h>
 #include <string.h>
@@ -96,24 +95,20 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
 
     // TODO: consider windows that shouldn't be framed like this (dropdowns, fullscreen, etc)
     //       i.e. get window X properties (ICCCM + EWMH)
-    xcb_window_t frame = window_frame_create(con, scr, win);
-    if (frame == (xcb_window_t) -1) {
-        // error
-        return 0;
-    }
-
-    // allocate client object
+    // create a framed client for the window
     client_t *client = malloc(sizeof(client_t));
     if (!client) {
         LFATAL("malloc() fault");
         KILL();
     }
-    client->inner = win;
-    client->frame = frame;
+    *client = client_init_framed(con, scr, win);
 
-    // TODO: get current client properties
-    // client->properties = ...
+    // if there was an error framing the client
+    if (client->frame == (xcb_window_t) -1) {
+        return 0;
+    }
 
+    // manage new client
     if (!clientset_push(&clientset, client)) {
         // if we can't keep track of the client then issues will arise later, so best to just avoid trying to manage the window
         free(client);
@@ -126,14 +121,7 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
         LERR("When adding window 0x%08x to save-set: error %u (%s)", win, err->error_code, xerrcode_str(err->error_code));
 
         free(err);
-        err = NULL;
     }
-
-    // reparent win under frame
-    window_reparent(con, win, frame);
-
-    // register event masks on client
-    client_register_events(con, client);
 
     LLOG("Session managed X window 0x%08x", win);
 
