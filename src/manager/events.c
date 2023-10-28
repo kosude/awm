@@ -14,6 +14,14 @@
 #include "manager/session.h"
 
 /**
+ * Handle an event of type XCB_BUTTON_PRESS.
+ */
+static void handle_button_press(
+    session_t *const session,
+    xcb_button_press_event_t *const ev
+);
+
+/**
  * Handle an event of type XCB_UNMAP_NOTIFY.
  */
 static void handle_unmap_notify(
@@ -21,18 +29,45 @@ static void handle_unmap_notify(
     xcb_unmap_notify_event_t *const ev
 );
 
+/**
+ * Handle an event of type XCB_MAP_REQUEST.
+ */
+static void handle_map_request(
+    session_t *const session,
+    xcb_map_request_event_t *const ev
+);
+
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     uint8_t t = ev->response_type;
 
-    LLOG("event_handle(): %s", xevent_str(t));
-
     switch (t) {
+        case XCB_BUTTON_PRESS:
+            handle_button_press(session, (xcb_button_press_event_t *) ev);
+            goto out;
         case XCB_UNMAP_NOTIFY:
             handle_unmap_notify(session, (xcb_unmap_notify_event_t *) ev);
-            return;
+            goto out;
+        case XCB_MAP_REQUEST:
+            handle_map_request(session, (xcb_map_request_event_t *) ev);
+            goto out;
         default:
-            return;
+            goto out_unhandled;
     }
+
+out:
+    LLOG("event_handle(): (handled) %s", xevent_str(t));
+    return;
+out_unhandled:
+    LLOG("event_handle(): %s", xevent_str(t));
+    return;
+}
+
+static void handle_button_press(session_t *const session, xcb_button_press_event_t *const ev) {
+    xcb_connection_t *con = session->con;
+
+    // propagate click events to client so the application can process them as usual
+    xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
+    xcb_flush(con);
 }
 
 static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event_t *const ev) {
@@ -61,4 +96,16 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
     htable_u32_pop(clientset.byinner_ht, win, NULL);
     htable_u32_pop(clientset.byframe_ht, parent, NULL);
     free(client);
+}
+
+static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {
+    xcb_window_t win = ev->window;
+    xcb_connection_t *con = session->con;
+
+    // we intercept map requests in order to frame the window before mapping it
+    if (!session_manage_client(session, win)) {
+        LERR("MapRequest for 0x%08x: Failed to manage client", win);
+    }
+
+    xcb_map_window(con, win);
 }

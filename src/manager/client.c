@@ -53,7 +53,7 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
         XCB_CONFIG_WINDOW_BORDER_WIDTH, (uint32_t[]) { 0 });
 
     // reparent inner window under frame
-    // TODO stop hardcoding position
+    // TODO: stop hardcoding position
     rcookies[1] = xcb_reparent_window_checked(con, inner, frame, 4, 28);
 
     // map frame
@@ -70,7 +70,9 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
             free(err);
             goto out;
         }
-    }
+    }\
+
+    LLOG("New client: inner window 0x%08x reparented under 0x%08x (framed)", inner, frame);
 
     // register event masks on client
     client_register_events(con, &client);
@@ -92,10 +94,9 @@ void client_frame_destroy(xcb_connection_t *const con, client_t *const client, c
     xcb_flush(con);
 
     if ((err = xcb_request_check(con, c))) {
-        LERR("When unparenting window 0x%08x to root (0x%08x): error %u (%s)", inner, root, err->error_code, xerrcode_str(err->error_code));
+        LERR("When reparenting client inner 0x%08x to root (0x%08x): error %u (%s)", inner, root, err->error_code, xerrcode_str(err->error_code));
 
         free(err);
-        return;
     }
 
     // destroy frame
@@ -168,7 +169,7 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
     // grab mouse buttons on inner for click to focus+raise
     // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.
     //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
-    //   for more, see https://unix.stackexchange.com/a/397466 :))
+    //   for more, see https://unix.stackexchange.com/a/397466 :3)
     vcookies[1] = xcb_grab_button_checked(con, 0, inner,
         XCB_EVENT_MASK_BUTTON_PRESS, XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
         XCB_NONE, XCB_NONE,
