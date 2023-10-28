@@ -37,6 +37,14 @@ typedef struct client_t {
     clientprops_t properties;
 } client_t;
 
+/**
+ * Register/grab buttons for click events (e.g. raise+focus on click)
+ */
+void client_register_events(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
 #ifdef __cplusplus
     }
 #endif

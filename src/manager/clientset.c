@@ -30,8 +30,11 @@ void clientset_dealloc(clientset_t *const set) {
         *iht = set->byinner_ht,
         *fht = set->byframe_ht;
 
-    htable_u32_free(iht, free_client_cb);
-    htable_u32_free(fht, NULL); // avoid double-free errors on clients
+    // htable gives errors if either table is NULL
+    if (iht && fht) {
+        htable_u32_free(iht, free_client_cb);
+        htable_u32_free(fht, NULL); // avoid double-free errors on clients
+    }
 
     memset(set, 0, sizeof(clientset_t));
 }

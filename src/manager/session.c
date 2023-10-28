@@ -11,6 +11,7 @@
 #include "libawm/xstr.h"
 
 #include "manager/client.h"
+#include "manager/events.h"
 #include "manager/window.h"
 
 #include <xcb/xcb_aux.h>
@@ -85,27 +86,6 @@ void session_dealloc(session_t *const session) {
     memset(session, 0, sizeof(session_t));
 }
 
-void session_handle_next_event(session_t *const session) {
-    xcb_connection_t *con = session->con;
-
-    xcb_flush(con);
-
-    if (xcb_connection_has_error(con)) {
-        LFATAL("The X connection was unexpectedly interrupted (did the X server terminate/crash?)");
-        KILL();
-    }
-
-    // handle the next event if not NULL
-    xcb_generic_event_t *ev = xcb_wait_for_event(con);
-    if (!ev) {
-        return;
-    }
-
-    LLOG("Event recieved: %s", xevent_str(ev->response_type));
-
-    free(ev);
-}
-
 uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
     xcb_connection_t *con = session->con;
     xcb_screen_t *scr = session->scr;
@@ -142,7 +122,7 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
     }
 
     // add window to save set - will be remapped if the window manager is killed
-    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_DELETE, win)))) {
+    if ((err = xcb_request_check(con, xcb_change_save_set_checked(con, XCB_SET_MODE_INSERT, win)))) {
         LERR("When adding window 0x%08x to save-set: error %u (%s)", win, err->error_code, xerrcode_str(err->error_code));
 
         free(err);
@@ -152,9 +132,33 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
     // reparent win under frame
     window_reparent(con, win, frame);
 
+    // register event masks on client
+    client_register_events(con, client);
+
     LLOG("Session managed X window 0x%08x", win);
 
     return 1;
+}
+
+void session_handle_next_event(session_t *const session) {
+    xcb_connection_t *con = session->con;
+
+    xcb_flush(con);
+
+    if (xcb_connection_has_error(con)) {
+        LFATAL("The X connection was unexpectedly interrupted (did the X server terminate/crash?)");
+        KILL();
+    }
+
+    xcb_generic_event_t *ev = xcb_wait_for_event(con);
+    if (!ev) {
+        return;
+    }
+
+    // handle the next event
+    event_handle(session, ev);
+
+    free(ev);
 }
 
 static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
@@ -167,7 +171,7 @@ static void register_wm_substructure_events(xcb_connection_t *const con, const x
     xcb_flush(con);
 
     if ((err = xcb_request_check(con, c))) {
-        LFATAL("Another window manager is already running: error %u (%s)", err->error_code, xerrcode_str(err->error_code));
+        LFATAL("Another window manager is already running!");
 
         free(err);
         KILL();
