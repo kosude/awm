@@ -2,6 +2,7 @@ set(SRCS
     "init/main.c"
     "init/sighandle.c"
 
+    "manager/thread/tpool.c"
     "manager/client.c"
     "manager/clientset.c"
     "manager/events.c"
