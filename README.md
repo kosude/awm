@@ -1,4 +1,9 @@
-# A window manager
+# <img src="res/wm_logo_colours.svg" height=40>
+
+**A window manager**
+
+![Lines of code](https://www.aschey.tech/tokei/github.com/kosude/awm)
+
 
 A lightweight X (xcb) window manager for use on Linux systems.
 
