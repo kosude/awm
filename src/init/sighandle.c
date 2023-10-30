@@ -11,7 +11,7 @@
 
 #include "util/logging.h"
 
-#include "manager/thread/tpool.h"
+#include "thread/tpool.h"
 #include "manager/session.h"
 
 #include <xcb/xcb.h>

@@ -5,7 +5,6 @@ set(SRCS
     "init/plugins.c"
     "init/sighandle.c"
 
-    "manager/thread/tpool.c"
     "manager/client.c"
     "manager/clientset.c"
     "manager/drag.c"
@@ -14,6 +13,8 @@ set(SRCS
     "manager/monitorset.c"
     "manager/randr.c"
     "manager/session.c"
+
+    "thread/tpool.c"
 
     "util/xstr.c"
 )
