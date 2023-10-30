@@ -13,6 +13,7 @@
 #endif
 
 #include "manager/clientset.h"
+#include "manager/thread/tpool.h"
 
 #include <xcb/xcb.h>
 
@@ -29,6 +30,9 @@ typedef struct session_t {
 
     /** Set of client references. */
     clientset_t clientset;
+
+    /** Thread pool into which new work to respond to events will be pushed. */
+    tpool_t *tpool;
 } session_t;
 
 /**
