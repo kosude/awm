@@ -62,6 +62,9 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     root = scr->root;
     session.root = root;
 
+    // init thread pool w/ (amount of cores + 1) threads
+    session.tpool = tpool_init(0);
+
     // listen to root events
     register_wm_substructure_events(con, root);
 
