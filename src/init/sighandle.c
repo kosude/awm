@@ -7,7 +7,7 @@
 
 #include "sighandle.h"
 
-#include "libawm/logging.h"
+#include "util/logging.h"
 
 #include "manager/session.h"
 

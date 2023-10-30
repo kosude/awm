@@ -7,8 +7,8 @@
 
 #include "client.h"
 
-#include "libawm/logging.h"
-#include "libawm/xstr.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 /**
  * Create a frame for the given client.

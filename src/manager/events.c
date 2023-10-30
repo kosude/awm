@@ -7,8 +7,8 @@
 
 #include "events.h"
 
-#include "libawm/logging.h"
-#include "libawm/xstr.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 #include "manager/client.h"
 #include "manager/session.h"

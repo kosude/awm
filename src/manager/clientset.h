@@ -12,7 +12,7 @@
     extern "C" {
 #endif
 
-#include "libawm/htable.h"
+#include "util/htable.h"
 
 typedef struct client_t client_t;
 

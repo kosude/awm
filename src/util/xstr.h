@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __libawm__xstr_h
-#define __libawm__xstr_h
+#ifndef __util__xstr_h
+#define __util__xstr_h
 #ifdef __cplusplus
     extern "C" {
 #endif

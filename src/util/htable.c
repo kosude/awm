@@ -2,10 +2,10 @@
 // (C) 2019 Srimanta Barua <srimanta.barua1@gmail.com>
 
 
+#include "htable.h"
+
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "libawm/htable.h"
 
 
 // -------- uint32_t-keyed hash table ----------------

@@ -5,8 +5,8 @@
  *   See the LICENCE file for more information.
  */
 
-#include "libawm/logging.h"
-#include "libawm/xstr.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 #include "init/sighandle.h"
 #include "manager/session.h"

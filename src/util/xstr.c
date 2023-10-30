@@ -5,7 +5,7 @@
  *   See the LICENCE file for more information.
  */
 
-#include "libawm/xstr.h"
+#include "xstr.h"
 
 // string values courtesy of i3wm:
 // https://github.com/i3/i3/blob/023ec870a2b35978ec66ee9f03f5d9604d396b34/mainx.c#L468
