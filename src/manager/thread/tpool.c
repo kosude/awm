@@ -8,9 +8,13 @@
 #include "tpool.h"
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <pthread.h>
 
-#include <stdio.h>
+/**
+ * Get the amount of processors/cores on the system
+ */
+static uint32_t get_processor_num(void);
 
 /**
  * A work struct used to queue the work for a thread in a singly linked list.
@@ -52,7 +56,7 @@ static tpool_work_t *tpool_work_pull(
  *
  * `arg` is assumed to be the thread pool.
  */
-static void *const tpool_worker_proc(
+static void *tpool_worker_proc(
     void *const arg
 );
 
@@ -85,7 +89,8 @@ tpool_t *tpool_init(const uint32_t n) {
     tpool_t *pool;
     pthread_t tid;
 
-    uint32_t cn = (n > 0) ? n : 2; // clamp n to minimum
+    uint32_t def = get_processor_num() + 1;
+    uint32_t cn = (n > 0) ? n : def;
 
     pool = malloc(sizeof(tpool_t));
 
@@ -172,8 +177,6 @@ uint8_t tpool_add_work(tpool_t *const pool, const tpool_func_t func, void *const
 }
 
 void tpool_wait(tpool_t *const pool) {
-    printf("Waiting...\n");
-
     pthread_mutex_lock(&(pool->wmutex));
 
     // wait until the pool is fully stopped
@@ -189,6 +192,10 @@ void tpool_wait(tpool_t *const pool) {
     pool->used = 0;
 
     pthread_mutex_unlock(&(pool->wmutex));
+}
+
+static uint32_t get_processor_num(void) {
+    return (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 static tpool_work_t *tpool_work_init(const tpool_func_t func, void *const arg) {
@@ -224,7 +231,7 @@ static tpool_work_t *tpool_work_pull(tpool_t *const pool) {
     return work;
 }
 
-static void *const tpool_worker_proc(void *const arg) {
+static void *tpool_worker_proc(void *const arg) {
     tpool_t *pool = arg;
     tpool_work_t *work;
 
