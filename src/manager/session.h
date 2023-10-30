@@ -13,7 +13,7 @@
 #endif
 
 #include "manager/clientset.h"
-#include "manager/thread/tpool.h"
+#include "thread/tpool.h"
 
 #include <xcb/xcb.h>
 
