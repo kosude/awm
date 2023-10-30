@@ -5,13 +5,12 @@
  *   See the LICENCE file for more information.
  */
 
-// Pretty much all of this code is modified (and heavily commented for my understanding) from John Schember's blog:
-// https://nachtimwald.com/2019/04/12/thread-pool-in-c/
-
 #include "tpool.h"
 
 #include <stdlib.h>
 #include <pthread.h>
+
+#include <stdio.h>
 
 /**
  * A work struct used to queue the work for a thread in a singly linked list.
@@ -76,6 +75,8 @@ typedef struct tpool_t {
     /** Amount of alive threads in the pool. */
     uint32_t threadn;
 
+    /** Boolean, starts at 0 and is set to 1 when any jobs are added. */
+    uint8_t used;
     /** Boolean, set to true to stop the threads. */
     uint8_t stop;
 } tpool_t;
@@ -98,6 +99,7 @@ tpool_t *tpool_init(const uint32_t n) {
     pool->workingn = 0;
     pool->threadn = cn;
 
+    pool->used = 0;
     pool->stop = 0;
 
     for (uint32_t i = 0; i < cn; i++) {
@@ -114,11 +116,7 @@ tpool_t *tpool_init(const uint32_t n) {
 void tpool_dealloc(tpool_t *const pool) {
     tpool_work_t *wcur, *wnext;
 
-    pthread_mutex_t *wmutex = &(pool->wmutex);
-    pthread_cond_t *work_exists = &(pool->work_exists);
-    pthread_cond_t *all_done = &(pool->all_done);
-
-    pthread_mutex_lock(wmutex);
+    pthread_mutex_lock(&(pool->wmutex));
 
     // destroy every work item in the list
     // note that anything currently processing won't be interrupted since those threads pulled the work they're doing out of the list
@@ -132,17 +130,17 @@ void tpool_dealloc(tpool_t *const pool) {
 
     // tell threads to stop
     pool->stop = 1;
-    pthread_cond_broadcast(work_exists);
+    pthread_cond_broadcast(&(pool->work_exists));
 
-    pthread_mutex_unlock(wmutex);
+    pthread_mutex_unlock(&(pool->wmutex));
 
     // wait on all threads to finish before destroying scheduling primitives
     tpool_wait(pool);
 
     // destroy scheduling primitives
-    pthread_mutex_destroy(wmutex);
-    pthread_cond_destroy(work_exists);
-    pthread_cond_destroy(all_done);
+    pthread_mutex_destroy(&(pool->wmutex));
+    pthread_cond_destroy(&(pool->work_exists));
+    pthread_cond_destroy(&(pool->all_done));
 
     free(pool);
 }
@@ -153,10 +151,7 @@ uint8_t tpool_add_work(tpool_t *const pool, const tpool_func_t func, void *const
         return 0;
     }
 
-    pthread_mutex_t *wmutex = &(pool->wmutex);
-    pthread_cond_t *work_exists = &(pool->work_exists);
-
-    pthread_mutex_lock(wmutex);
+    pthread_mutex_lock(&(pool->wmutex));
 
     // add work to the end of the queue
     if (!pool->whead) {
@@ -167,31 +162,33 @@ uint8_t tpool_add_work(tpool_t *const pool, const tpool_func_t func, void *const
         pool->wtail = work;
     }
 
-    pthread_cond_broadcast(work_exists);
+    pool->used = 1;
 
-    pthread_mutex_unlock(wmutex);
+    pthread_cond_broadcast(&(pool->work_exists));
+
+    pthread_mutex_unlock(&(pool->wmutex));
 
     return 1;
 }
 
 void tpool_wait(tpool_t *const pool) {
-    pthread_mutex_t *wmutex = &(pool->wmutex);
-    pthread_cond_t *all_done = &(pool->all_done);
+    printf("Waiting...\n");
 
-    pthread_mutex_lock(wmutex);
+    pthread_mutex_lock(&(pool->wmutex));
 
     // wait until the pool is fully stopped
     for (;;) {
-        if ((!pool->stop && pool->workingn > 0) || (pool->stop && pool->threadn > 0)){
-            // either the pool hasn't been stopped + there are still threads processing work,
-            // or the pool has been stopped but there is still at least one thread alive.
-            pthread_cond_wait(all_done, wmutex);
-        } else {
-            break;
+        if (pool->used && ((!pool->stop && pool->workingn > 0) || (pool->threadn > 0))) {
+            pthread_cond_wait(&(pool->all_done), &(pool->wmutex));
         }
+
+        break;
     }
 
-    pthread_mutex_unlock(wmutex);
+    // thread pool is stopped, reset used to 0 for reuse (otherwise waiting for a pool to stop twice results in hangs)
+    pool->used = 0;
+
+    pthread_mutex_unlock(&(pool->wmutex));
 }
 
 static tpool_work_t *tpool_work_init(const tpool_func_t func, void *const arg) {
@@ -231,24 +228,15 @@ static void *const tpool_worker_proc(void *const arg) {
     tpool_t *pool = arg;
     tpool_work_t *work;
 
-    pthread_mutex_t *wmutex;
-    pthread_cond_t *work_exists, *all_done;
-
     // the thread runs continuously
     for (;;) {
         pthread_mutex_lock(&(pool->wmutex));
-
-        // update data from pool
-        // pool data is copied onto the stack once where possible to reduce dereferences
-        wmutex = &(pool->wmutex);
-        work_exists = &(pool->work_exists);
-        all_done = &(pool->all_done);
 
         // this check is re-done every time the work_exists cond is signalled
         // therefore, this blocks until work is available to be done.
         // also note that wmutex is automatically unlocked until the cond is signalled so other threads can unlock it to submit work.
         while (!pool->whead && !pool->stop) {
-            pthread_cond_wait(work_exists, wmutex);
+            pthread_cond_wait(&(pool->work_exists), &(pool->wmutex));
         }
 
         // break loop if the pool has requested threads to stop, do this before work is pulled
@@ -261,7 +249,7 @@ static void *const tpool_worker_proc(void *const arg) {
         pool->workingn++;
 
         // mutex is unlocked so other threads can also pull and process work
-        pthread_mutex_unlock(wmutex);
+        pthread_mutex_unlock(&(pool->wmutex));
 
         if (work) {
             // call work function and destroy it
@@ -270,23 +258,23 @@ static void *const tpool_worker_proc(void *const arg) {
         }
 
         // work (if there was any) is now done, lock the mutex again to sync the pool data
-        pthread_mutex_lock(wmutex);
+        pthread_mutex_lock(&(pool->wmutex));
 
         // working count decreased
         pool->workingn--;
 
         // if there is no work left
         if (!pool->stop && pool->workingn == 0 && !pool->whead) {
-            pthread_cond_signal(all_done);
+            pthread_cond_signal(&(pool->all_done));
         }
-        pthread_mutex_unlock(wmutex);
+        pthread_mutex_unlock(&(pool->wmutex));
     }
 
     // this thread is stopping
     pool->threadn--;
 
-    pthread_cond_signal(all_done);
-    pthread_mutex_unlock(wmutex);
+    pthread_cond_signal(&(pool->all_done));
+    pthread_mutex_unlock(&(pool->wmutex));
 
     return NULL;
 }
