@@ -23,7 +23,7 @@ EOF
 
 # process to run the wm in (e.g. valgrind)
 runtime() {
-    valgrind --leak-check=full --show-leak-kinds=all "$@"
+    valgrind --leak-check=full --suppressions="./tools/vg_suppressions" "$@"
 }
 
 # arg parsing

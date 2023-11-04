@@ -32,7 +32,11 @@ void set_signal_callbacks(signal_callback_data data){
 static void exit_cb(void) {
     LINFO("Window manager process terminating...");
 
-    tpool_dealloc(cb_data.session->tpool);
+    // tpool may be NULL
+    if (cb_data.session->tpool) {
+        tpool_dealloc(cb_data.session->tpool);
+    }
+
     session_dealloc(cb_data.session);
     xcb_disconnect(cb_data.con); // this must be done regardless of if there was an issue with connecting or not
 }
