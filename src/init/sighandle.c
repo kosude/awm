@@ -34,7 +34,11 @@ void set_signal_callbacks(signal_callback_data_t data){
 static void exit_cb(void) {
     LINFO("Window manager process terminating...");
 
-    tpool_dealloc(cb_data.session->tpool);
+    // tpool may be NULL
+    if (cb_data.session->tpool) {
+        tpool_dealloc(cb_data.session->tpool);
+    }
+
     session_dealloc(cb_data.session);
 
     pluginld_unload(cb_data.pluginld);
