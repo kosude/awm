@@ -37,6 +37,14 @@ static void handle_map_request(
     xcb_map_request_event_t *const ev
 );
 
+/**
+ * Handle an event of type XCB_CONFIGURE_REQUEST.
+ */
+static void handle_configure_request(
+    session_t *const session,
+    xcb_configure_request_event_t *const ev
+);
+
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     uint8_t t = ev->response_type;
 
@@ -49,6 +57,9 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
             goto out;
         case XCB_MAP_REQUEST:
             handle_map_request(session, (xcb_map_request_event_t *) ev);
+            goto out;
+        case XCB_CONFIGURE_REQUEST:
+            handle_configure_request(session, (xcb_configure_request_event_t *) ev);
             goto out;
         default:
             goto out_unhandled;
@@ -108,4 +119,50 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
     }
 
     xcb_map_window(con, win);
+}
+
+static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {
+    xcb_window_t win = ev->window;
+    uint16_t evmask = ev->value_mask;
+
+    xcb_connection_t *con = session->con;
+    clientset_t clientset = session->clientset;
+    client_t *client;
+
+    if (htable_u32_contains(clientset.byframe_ht, win)) {
+        LLOG("CONFIGURE_REQUEST FROM FRAME!");
+    }
+
+    // attempt to get client by window handle; if NULL, we assume this window isn't managed and therefore (in practice) not yet mapped
+    if (!(client = htable_u32_get(clientset.byinner_ht, win, NULL))) {
+        // pass configure event along as normal
+        uint16_t mask = 0;
+        uint32_t values[7];
+        uint32_t c = 0;
+    #   define COPY_MASK_MEMBER(m, e)   \
+        {                               \
+            if (evmask & m) {           \
+                mask |= m;              \
+                values[c++] = ev->e;    \
+            }                           \
+        }
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_X, x);
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_Y, y);
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_WIDTH, width);
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_HEIGHT, height);
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_SIBLING, sibling);
+        COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_STACK_MODE, stack_mode);
+
+        // set border width to 0
+        mask |= XCB_CONFIG_WINDOW_BORDER_WIDTH;
+        values[c++] = 0;
+
+        xcb_configure_window(con, win, mask, values);
+        xcb_flush(con);
+
+        return;
+    }
+
+    client_move(con, client, ev->x, ev->y);
+    client_resize(con, client, ev->width, ev->height);
 }

@@ -18,10 +18,13 @@
  * A datastructure of properties of a managed client.
  */
 typedef struct clientprops_t {
-    /** Client position */
+    /** Client position (i.e. of frame window) */
     uint32_t x, y;
-    /** Client size */
+    /** Client size (i.e. of frame window) */
     uint32_t width, height;
+
+    /** The offset from the top-left corner of the frame to the top-left corner of the inner window. */
+    uint32_t inneroffsetx, inneroffsety;
 } clientprops_t;
 
 /**
@@ -33,7 +36,7 @@ typedef struct client_t {
     /** The parent/frame window - rendered into and directly managed by awm. */
     xcb_window_t frame;
 
-    /** Client properties (as of last configure). */
+    /** Client properties. */
     clientprops_t properties;
 } client_t;
 
@@ -53,6 +56,26 @@ void client_frame_destroy(
     xcb_connection_t *const con,
     client_t *const client,
     const xcb_window_t root
+);
+
+/**
+ * Move the client to the given coordinates, assuming those are of the inner window.
+ */
+void client_move(
+    xcb_connection_t *const con,
+    client_t *const client,
+    const uint32_t x,
+    const uint32_t y
+);
+
+/**
+ * Resize the client to the given dimensions, assuming those are of the inner window.
+ */
+void client_resize(
+    xcb_connection_t *const con,
+    client_t *const client,
+    const uint32_t width,
+    const uint32_t height
 );
 
 #ifdef __cplusplus
