@@ -80,7 +80,7 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     clientset_t clientset = session->clientset;
     client_t *client;
 
-    xcb_set_input_focus(con, XCB_INPUT_FOCUS_NONE, win, XCB_CURRENT_TIME);
+    // xcb_set_input_focus(con, XCB_INPUT_FOCUS_NONE, win, XCB_CURRENT_TIME);
 
     // attempt to get window client
     client = htable_u32_get(clientset.byframe_ht, win, NULL);
@@ -91,6 +91,8 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
         // not managed
         return;
     }
+
+    client_raise_focus(con, client);
 
     // propagate click events to client so the application can process them as usual
     xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);

@@ -118,7 +118,7 @@ void client_raise_focus(xcb_connection_t *const con, client_t *const client) {
     xcb_configure_window(con, frame,
         XCB_CONFIG_WINDOW_STACK_MODE,
         (uint32_t []) { XCB_STACK_MODE_ABOVE });
-    xcb_set_input_focus(con, XCB_INPUT_FOCUS_NONE, client->inner, XCB_CURRENT_TIME);
+    xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, client->inner, XCB_CURRENT_TIME);
     xcb_flush(con);
 }
 
