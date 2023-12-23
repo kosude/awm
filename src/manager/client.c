@@ -112,7 +112,7 @@ void client_frame_destroy(xcb_connection_t *const con, client_t *const client, c
     client->frame = 0;
 }
 
-void client_raise(xcb_connection_t *const con, client_t *const client) {
+void client_raise_focus(xcb_connection_t *const con, client_t *const client) {
     xcb_window_t frame = client->frame;
 
     xcb_configure_window(con, frame,

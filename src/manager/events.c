@@ -146,7 +146,7 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
 
     // raise and focus new clients
     // TODO: check if this needs to depend on a window hint, some windows might want to not open on top?
-    client_raise(con, client);
+    client_raise_focus(con, client);
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {

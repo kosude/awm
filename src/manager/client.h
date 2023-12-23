@@ -61,7 +61,7 @@ void client_frame_destroy(
 /**
  * Raise the specified client to the top of the stack.
  */
-void client_raise(
+void client_raise_focus(
     xcb_connection_t *const con,
     client_t *const client
 );
