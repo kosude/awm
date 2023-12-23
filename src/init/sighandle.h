@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __src__sighandle_h
-#define __src__sighandle_h
+#ifndef __init__sighandle_h
+#define __init__sighandle_h
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -18,19 +18,19 @@ typedef struct session_t session_t;
 /**
  * Data to be passed to signal handling callback functions.
  */
-typedef struct signal_callback_data {
+typedef struct signal_callback_data_t {
     /** Connection which will be disconnected on exit. */
     xcb_connection_t *con;
 
     /** Session ptr to deallocate */
     session_t *session;
-} signal_callback_data;
+} signal_callback_data_t;
 
 /**
  * Set callback functions for handling process signals.
  */
 void set_signal_callbacks(
-    signal_callback_data data
+    signal_callback_data_t data
 );
 
 #ifdef __cplusplus

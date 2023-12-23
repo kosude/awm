@@ -12,19 +12,18 @@
     extern "C" {
 #endif
 
+#include "util/geom.h"
+
 #include <xcb/xcb.h>
 
 /**
  * A datastructure of properties of a managed client.
  */
 typedef struct clientprops_t {
-    /** Client position (i.e. of frame window) */
-    uint32_t x, y;
-    /** Client size (i.e. of frame window) */
-    uint32_t width, height;
-
-    /** The offset from the top-left corner of the frame to the top-left corner of the inner window. */
-    uint32_t inneroffsetx, inneroffsety;
+    /** Client frame size and position data */
+    rect_t framerect;
+    /** Buffer/margin between the frame and inner window */
+    margin_t innermargin;
 } clientprops_t;
 
 /**

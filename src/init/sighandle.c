@@ -18,9 +18,9 @@ static void exit_cb(void); // called on exit()
 static void sigint_cb(int sig); // called on SIGINT (e.g. recieved ^C)
 
 // static global used to pass data to the callback functions
-static signal_callback_data cb_data;
+static signal_callback_data_t cb_data;
 
-void set_signal_callbacks(signal_callback_data data){
+void set_signal_callbacks(signal_callback_data_t data){
     cb_data = data;
 
     // set up callbacks to clean up objects on exit

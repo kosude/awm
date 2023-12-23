@@ -62,7 +62,9 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
         XCB_CONFIG_WINDOW_BORDER_WIDTH, (uint32_t[]) { 0 });
 
     // reparent inner window under frame
-    rcookies[1] = xcb_reparent_window_checked(con, inner, frame, client.properties.inneroffsetx, client.properties.inneroffsety);
+    rcookies[1] = xcb_reparent_window_checked(
+        con, inner, frame,
+        client.properties.innermargin.left, client.properties.innermargin.top);
 
     // map frame
     rcookies[2] = xcb_map_window_checked(con, frame);
@@ -90,22 +92,14 @@ out:
 }
 
 void client_frame_destroy(xcb_connection_t *const con, client_t *const client, const xcb_window_t root) {
-    xcb_generic_error_t *err;
-
     xcb_window_t inner = client->inner;
     xcb_window_t frame = client->frame;
 
     // request to reparent under root
-    // NOTE: results in BadWindow error, but doesn't seem to cause any actual problems. Maybe this is unnecessary anyways?
-    xcb_void_cookie_t c = xcb_reparent_window_checked(con, inner, root, 0, 0);
+    // note, this results in BadWindow error (for some reason), but doesn't seem to cause any problems
+    xcb_reparent_window(con, inner, root, 0, 0);
 
     xcb_flush(con);
-
-    if ((err = xcb_request_check(con, c))) {
-        LERR("When reparenting client inner 0x%08x to root (0x%08x): error %u (%s)", inner, root, err->error_code, xerrcode_str(err->error_code));
-
-        free(err);
-    }
 
     // destroy frame
     xcb_destroy_window(con, frame);
@@ -128,11 +122,13 @@ void client_move(xcb_connection_t *const con, client_t *const client, const uint
 
     // get frame position
     uint32_t
-        fx = x - client->properties.inneroffsetx,
-        fy = y - client->properties.inneroffsety;
+        fx = x - client->properties.innermargin.left,
+        fy = y - client->properties.innermargin.top;
 
-    props->x = x;
-    props->y = y;
+    props->framerect.offset = (offset_t) {
+        fx,
+        fy
+    };
 
     xcb_configure_window(
         con, frame,
@@ -147,9 +143,16 @@ void client_resize(xcb_connection_t *const con, client_t *const client, const ui
     xcb_window_t inner = client->inner;
     clientprops_t *props = &(client->properties);
 
-    props->width = width;
-    props->height = height;
+    // get frame size
+    uint32_t fwidth = width + props->innermargin.left + props->innermargin.right;
+    uint32_t fheight = height + props->innermargin.top + props->innermargin.bottom;
 
+    props->framerect.extent = (extent_t) {
+        fwidth,
+        fheight
+    };
+
+    // TODO: also resize the frame :)
     xcb_configure_window(
         con, inner,
         XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
@@ -169,7 +172,9 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     xcb_generic_error_t *err = NULL;
 
     // TODO: stop hardcoding these values
-    uint16_t borderbuf_x = props.inneroffsetx * 2, borderbuf_y = props.inneroffsety + props.inneroffsetx;
+    // uint16_t
+    //     borderbuf_x = props.innermargin.left + props.innermargin.right,
+    //     borderbuf_y = props.innermargin.top + props.innermargin.bottom;
     uint32_t framecol = 0xff0000;
 
     xcb_window_t frame = xcb_generate_id(con);
@@ -177,8 +182,8 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     // create frame window
     err = xcb_request_check(con, xcb_create_window_checked(
         con, XCB_COPY_FROM_PARENT, frame, root,
-        props.x, props.y,
-        props.width + borderbuf_x, props.height + borderbuf_y,
+        props.framerect.offset.x, props.framerect.offset.y,
+        props.framerect.extent.width, props.framerect.extent.height,
         0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, rootvis,
         XCB_CW_BACK_PIXEL,
@@ -244,14 +249,14 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
     // get window geometry
     xcb_get_geometry_reply_t *geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
 
-    props.x = geom->x;
-    props.y = geom->y;
-    props.width = geom->width;
-    props.height = geom->height;
+    // TODO: stop hardcoding frame margin
+    props.innermargin.top = 28;
+    props.innermargin.left = props.innermargin.right = props.innermargin.bottom = 4;
 
-    // TODO: stop hardcoding offset
-    props.inneroffsetx = 4;
-    props.inneroffsety = 28;
+    props.framerect.extent.width = geom->width + props.innermargin.left + props.innermargin.right;
+    props.framerect.extent.height = geom->height + props.innermargin.top + props.innermargin.bottom;
+    props.framerect.offset.x = geom->x;
+    props.framerect.offset.y = geom->y;
 
     free(geom);
 
