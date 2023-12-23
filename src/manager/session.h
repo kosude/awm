@@ -49,9 +49,9 @@ void session_dealloc(
 );
 
 /**
- * Manage the given X client `win` under session `session` - returns 0 if failed.
+ * Manage the given X client `win` under session `session` - returns NULL if failed.
  */
-uint8_t session_manage_client(
+client_t *session_manage_client(
     session_t *const session,
     xcb_window_t win
 );

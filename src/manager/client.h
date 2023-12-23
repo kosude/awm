@@ -59,6 +59,14 @@ void client_frame_destroy(
 );
 
 /**
+ * Raise the specified client to the top of the stack.
+ */
+void client_raise(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
+/**
  * Move the client to the given coordinates, assuming those are of the inner window.
  */
 void client_move(

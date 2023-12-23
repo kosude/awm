@@ -85,7 +85,7 @@ void session_dealloc(session_t *const session) {
     memset(session, 0, sizeof(session_t));
 }
 
-uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
+client_t *session_manage_client(session_t *const session, xcb_window_t win) {
     xcb_connection_t *con = session->con;
     xcb_screen_t *scr = session->scr;
 
@@ -105,7 +105,7 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
 
     // if there was an error framing the client
     if (client->frame == (xcb_window_t) -1) {
-        return 0;
+        return NULL;
     }
 
     // manage new client
@@ -113,7 +113,7 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
         // if we can't keep track of the client then issues will arise later, so best to just avoid trying to manage the window
         free(client);
 
-        return 0;
+        return NULL;
     }
 
     // add window to save set - will be remapped if the window manager is killed
@@ -125,7 +125,7 @@ uint8_t session_manage_client(session_t *const session, xcb_window_t win) {
 
     LLOG("Session managed X window 0x%08x", win);
 
-    return 1;
+    return client;
 }
 
 void session_handle_next_event(session_t *const session) {

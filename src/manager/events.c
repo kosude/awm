@@ -74,7 +74,23 @@ out_unhandled:
 }
 
 static void handle_button_press(session_t *const session, xcb_button_press_event_t *const ev) {
+    xcb_window_t win = ev->event;
+
     xcb_connection_t *con = session->con;
+    clientset_t clientset = session->clientset;
+    client_t *client;
+
+    xcb_set_input_focus(con, XCB_INPUT_FOCUS_NONE, win, XCB_CURRENT_TIME);
+
+    // attempt to get window client
+    client = htable_u32_get(clientset.byframe_ht, win, NULL);
+    if (!client) {
+        client = htable_u32_get(clientset.byinner_ht, win, NULL);
+    }
+    if (!client) {
+        // not managed
+        return;
+    }
 
     // propagate click events to client so the application can process them as usual
     xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
@@ -113,12 +129,24 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
     xcb_window_t win = ev->window;
     xcb_connection_t *con = session->con;
 
+    client_t *client;
+
     // we intercept map requests in order to frame the window before mapping it
-    if (!session_manage_client(session, win)) {
+    if (!(client = session_manage_client(session, win))) {
         LERR("MapRequest for 0x%08x: Failed to manage client", win);
     }
 
     xcb_map_window(con, win);
+    xcb_flush(con);
+
+    // don't proceed if we failed to make the client
+    if (!client) {
+        return;
+    }
+
+    // raise and focus new clients
+    // TODO: check if this needs to depend on a window hint, some windows might want to not open on top?
+    client_raise(con, client);
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {
@@ -128,10 +156,6 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
     xcb_connection_t *con = session->con;
     clientset_t clientset = session->clientset;
     client_t *client;
-
-    if (htable_u32_contains(clientset.byframe_ht, win)) {
-        LLOG("CONFIGURE_REQUEST FROM FRAME!");
-    }
 
     // attempt to get client by window handle; if NULL, we assume this window isn't managed and therefore (in practice) not yet mapped
     if (!(client = htable_u32_get(clientset.byinner_ht, win, NULL))) {
