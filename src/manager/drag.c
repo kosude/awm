@@ -16,9 +16,6 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
     xcb_grab_pointer_reply_t *greply;
     xcb_query_pointer_reply_t *qreply;
 
-    // xcb_window_t inner = client->inner;
-    // xcb_window_t frame = client->frame;
-
     uint8_t ungrab = 0;
     xcb_generic_event_t *ev;
     xcb_motion_notify_event_t *mnev;
@@ -42,7 +39,7 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
 
     // grab pointer
     greply = xcb_grab_pointer_reply(con, xcb_grab_pointer(con, 0, root,
-        XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_RELEASE,
+        XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE,
         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC,
         XCB_NONE, XCB_NONE, XCB_CURRENT_TIME),
         NULL);
@@ -65,6 +62,9 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
             ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
             client_move(con, client, winpos.x + ptrdelta.x, winpos.y + ptrdelta.y);
             break;
+        case XCB_KEY_PRESS:
+        case XCB_KEY_RELEASE:
+        case XCB_BUTTON_PRESS:
         case XCB_BUTTON_RELEASE:
             ungrab = 1;
             break;

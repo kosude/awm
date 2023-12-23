@@ -98,7 +98,7 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     client_focus(con, client);
     client_raise(con, client);
 
-    if (is_frame) {
+    if (ev->detail == XCB_BUTTON_INDEX_1 && (is_frame || ev->state & XCB_MOD_MASK_4)) {
         drag_start_and_wait(con, root, client);
     }
 
