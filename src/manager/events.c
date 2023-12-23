@@ -11,6 +11,7 @@
 #include "util/xstr.h"
 
 #include "manager/client.h"
+#include "manager/drag.h"
 #include "manager/session.h"
 
 /**
@@ -77,20 +78,29 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     xcb_window_t win = ev->event;
 
     xcb_connection_t *con = session->con;
+    xcb_window_t root = session->root;
     clientset_t clientset = session->clientset;
     client_t *client;
+
+    uint8_t is_frame = 1;
 
     // attempt to get window client
     client = htable_u32_get(clientset.byframe_ht, win, NULL);
     if (!client) {
         client = htable_u32_get(clientset.byinner_ht, win, NULL);
+        is_frame = 0;
     }
     if (!client) {
         // not managed
         return;
     }
 
-    client_raise_focus(con, client);
+    client_focus(con, client);
+    client_raise(con, client);
+
+    if (is_frame) {
+        drag_start_and_wait(con, root, client);
+    }
 
     // propagate click events to client so the application can process them as usual
     xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
@@ -144,9 +154,10 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
         return;
     }
 
-    // raise and focus new clients
+    // focus and raise new clients
     // TODO: check if this needs to depend on a window hint, some windows might want to not open on top?
-    client_raise_focus(con, client);
+    client_focus(con, client);
+    client_raise(con, client);
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {

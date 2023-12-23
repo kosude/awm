@@ -4,6 +4,7 @@ set(SRCS
 
     "manager/client.c"
     "manager/clientset.c"
+    "manager/drag.c"
     "manager/events.c"
     "manager/session.c"
 

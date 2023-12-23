@@ -106,14 +106,19 @@ void client_frame_destroy(xcb_connection_t *const con, client_t *const client, c
     client->frame = 0;
 }
 
-void client_raise_focus(xcb_connection_t *const con, client_t *const client) {
+void client_raise(xcb_connection_t *const con, client_t *const client) {
     xcb_window_t frame = client->frame;
 
     xcb_configure_window(con, frame,
         XCB_CONFIG_WINDOW_STACK_MODE,
         (uint32_t []) { XCB_STACK_MODE_ABOVE });
-    xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, client->inner, XCB_CURRENT_TIME);
     xcb_flush(con);
+}
+
+void client_focus(xcb_connection_t *const con, client_t *const client) {
+    xcb_window_t inner = client->inner;
+
+    xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, inner, XCB_CURRENT_TIME);
 }
 
 void client_move(xcb_connection_t *const con, client_t *const client, const uint32_t x, const uint32_t y) {
@@ -121,7 +126,7 @@ void client_move(xcb_connection_t *const con, client_t *const client, const uint
     clientprops_t *props = &(client->properties);
 
     // get frame position
-    uint32_t
+    int32_t
         fx = x - client->properties.innermargin.left,
         fy = y - client->properties.innermargin.top;
 
@@ -224,7 +229,8 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
         //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
         //   (for more, see https://unix.stackexchange.com/a/397466)
         vcookies[i] = xcb_grab_button_checked(con, 0, inner,
-            XCB_EVENT_MASK_BUTTON_PRESS, XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
+            XCB_EVENT_MASK_BUTTON_PRESS,
+            XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
             XCB_NONE, XCB_NONE,
             (uint8_t) i, XCB_MOD_MASK_ANY);
     }

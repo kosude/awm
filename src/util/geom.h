@@ -29,9 +29,9 @@ typedef struct extent_t {
  */
 typedef struct offset_t {
     /** X position */
-    uint32_t x;
+    int32_t x;
     /** Y position */
-    uint32_t y;
+    int32_t y;
 } offset_t;
 
 /**
