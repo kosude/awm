@@ -202,7 +202,7 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
 
 static void client_register_events(xcb_connection_t *const con, client_t *const client) {
     xcb_generic_error_t *err;
-    xcb_void_cookie_t vcookies[2];
+    xcb_void_cookie_t vcookies[4];
 
     xcb_window_t inner = client->inner;
     xcb_window_t frame = client->frame;
@@ -213,14 +213,16 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
             XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
         });
 
-    // grab mouse buttons on inner for click to focus+raise
-    // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.
-    //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
-    //   for more, see https://unix.stackexchange.com/a/397466 :3)
-    vcookies[1] = xcb_grab_button_checked(con, 0, inner,
-        XCB_EVENT_MASK_BUTTON_PRESS, XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
-        XCB_NONE, XCB_NONE,
-        (uint8_t) XCB_BUTTON_INDEX_ANY, XCB_MOD_MASK_ANY);
+    // grab left, middle, and right mouse buttons for click-to-raise functionality
+    for (uint16_t i = 1; i <= 3; i++) {
+        // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.
+        //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
+        //   (for more, see https://unix.stackexchange.com/a/397466)
+        vcookies[i] = xcb_grab_button_checked(con, 0, inner,
+            XCB_EVENT_MASK_BUTTON_PRESS, XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
+            XCB_NONE, XCB_NONE,
+            (uint8_t) i, XCB_MOD_MASK_ANY);
+    }
 
     xcb_flush(con);
 

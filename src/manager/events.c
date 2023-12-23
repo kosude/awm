@@ -80,8 +80,6 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     clientset_t clientset = session->clientset;
     client_t *client;
 
-    // xcb_set_input_focus(con, XCB_INPUT_FOCUS_NONE, win, XCB_CURRENT_TIME);
-
     // attempt to get window client
     client = htable_u32_get(clientset.byframe_ht, win, NULL);
     if (!client) {
@@ -165,7 +163,7 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
         uint16_t mask = 0;
         uint32_t values[7];
         uint32_t c = 0;
-    #   define COPY_MASK_MEMBER(m, e)   \
+#       define COPY_MASK_MEMBER(m, e)   \
         {                               \
             if (evmask & m) {           \
                 mask |= m;              \
@@ -178,6 +176,7 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
         COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_HEIGHT, height);
         COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_SIBLING, sibling);
         COPY_MASK_MEMBER(XCB_CONFIG_WINDOW_STACK_MODE, stack_mode);
+#       undef COPY_MASK_MEMBER
 
         // set border width to 0
         mask |= XCB_CONFIG_WINDOW_BORDER_WIDTH;
