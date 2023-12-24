@@ -13,6 +13,7 @@
 #endif
 
 #include "manager/clientset.h"
+#include "manager/monitorset.h"
 
 #include <xcb/xcb.h>
 
@@ -29,6 +30,11 @@ typedef struct session_t {
 
     /** Set of client references. */
     clientset_t clientset;
+
+    /** RandR base event */
+    uint8_t randrbase;
+    /** Set of monitor references */
+    monitorset_t monitorset;
 } session_t;
 
 /**
@@ -60,6 +66,13 @@ client_t *session_manage_client(
  * Poll the next event recieved from the X server and handle it appropriately.
  */
 void session_handle_next_event(
+    session_t *const session
+);
+
+/**
+ * Update the session's monitor table to current information
+ */
+void session_update_monitorset(
     session_t *const session
 );
 

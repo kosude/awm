@@ -6,6 +6,9 @@ set(SRCS
     "manager/clientset.c"
     "manager/drag.c"
     "manager/events.c"
+    "manager/monitor.c"
+    "manager/monitorset.c"
+    "manager/randr.c"
     "manager/session.c"
 
     "util/htable.c"
@@ -20,7 +23,7 @@ target_compile_definitions(${TARGET_NAME} PRIVATE ${AWM_MACROS})
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR} "${AWM_DEPS_DIR}/")
 
 # xcb libs
-find_package(XCB QUIET REQUIRED COMPONENTS XCB AUX)
+find_package(XCB QUIET REQUIRED COMPONENTS XCB AUX RANDR)
 target_link_libraries(${TARGET_NAME} ${XCB_LIBRARIES})
 target_include_directories(${TARGET_NAME} PRIVATE ${XCB_INCLUDE_DIRS})
 

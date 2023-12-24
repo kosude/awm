@@ -12,6 +12,8 @@
 
 #include "manager/client.h"
 #include "manager/events.h"
+#include "manager/monitor.h"
+#include "manager/randr.h"
 
 #include <xcb/xcb_aux.h>
 #include <string.h>
@@ -63,6 +65,11 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // listen to root events
     register_wm_substructure_events(con, root);
 
+    // init randr and find monitors
+    session.randrbase = randr_init(con, root);
+    session.monitorset = monitorset_init();
+    session_update_monitorset(&session);
+
     // initialise client set
     session.clientset = clientset_init();
 
@@ -79,8 +86,10 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
 
 void session_dealloc(session_t *const session) {
     clientset_t clientset = session->clientset;
+    monitorset_t monitorset = session->monitorset;
 
     clientset_dealloc(&clientset);
+    monitorset_dealloc(&monitorset);
 
     memset(session, 0, sizeof(session_t));
 }
@@ -145,8 +154,29 @@ void session_handle_next_event(session_t *const session) {
 
     // handle the next event
     event_handle(session, ev);
+    randr_event_handle(session, ev);
 
     free(ev);
+}
+
+void session_update_monitorset(session_t *const session) {
+    xcb_connection_t *con = session->con;
+    xcb_window_t root = session->root;
+
+    monitorset_t monitorset = session->monitorset;
+
+    monitor_t **monitors;
+    uint32_t monitorn;
+
+    monitors = monitor_find_all(con, root, &monitorn);
+
+    for (uint32_t i = 0; i < monitorn; i++) {
+        monitorset_push(&monitorset, monitors[i]);
+    }
+
+    free(monitors);
+
+    LINFO("Updated monitor set includes %u monitors", monitorn);
 }
 
 static void register_wm_substructure_events(xcb_connection_t *const con, const xcb_window_t root) {
