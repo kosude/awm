@@ -10,8 +10,11 @@
 #include "util/logging.h"
 
 #include "manager/client.h"
+#include "manager/session.h"
 
 #include <stdlib.h>
+
+// TODO: this file *definitely* needs some refactoring.
 
 typedef enum resize_side_t {
     RESIZE_NONE     = 0x00,
@@ -30,21 +33,28 @@ static uint8_t get_resize_side_mask(
 
 static void move_and_wait(
     xcb_connection_t *const con,
+    session_t *const session,
     client_t *const client,
+    const eventhandler_t handler,
     offset_t ptrpos,
     offset_t innerpos
 );
 
 static void resize_and_wait(
     xcb_connection_t *const con,
+    session_t *const session,
     client_t *const client,
+    const eventhandler_t handler,
     offset_t ptrpos,
     offset_t innerpos,
     extent_t innersize,
     uint8_t side
 );
 
-void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, client_t *const client) {
+void drag_start_and_wait(session_t *const session, client_t *const client, const eventhandler_t handler) {
+    xcb_connection_t *const con = session->con;
+    const xcb_window_t root = session->root;
+
     xcb_grab_pointer_reply_t *greply = NULL;
     xcb_query_pointer_reply_t *qreply = NULL;
 
@@ -90,9 +100,9 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
     }
 
     if (side == RESIZE_NONE) {
-        move_and_wait(con, client, ptrpos, innerpos);
+        move_and_wait(con, session, client, handler, ptrpos, innerpos);
     } else {
-        resize_and_wait(con, client, ptrpos, innerpos, innersize, side);
+        resize_and_wait(con, session, client, handler, ptrpos, innerpos, innersize, side);
     }
 
     xcb_ungrab_pointer(con, XCB_CURRENT_TIME);
@@ -113,7 +123,9 @@ static uint8_t get_resize_side_mask(offset_t ptrpos, offset_t innerpos, extent_t
     return inleft | inright | intop | inbottom;
 }
 
-static void move_and_wait(xcb_connection_t *const con, client_t *const client, offset_t ptrpos, offset_t innerpos) {
+static void move_and_wait(xcb_connection_t *const con, session_t *const session, client_t *const client, const eventhandler_t handler,
+    offset_t ptrpos, offset_t innerpos)
+{
     xcb_generic_event_t *ev;
     xcb_motion_notify_event_t *mnev;
 
@@ -132,6 +144,9 @@ static void move_and_wait(xcb_connection_t *const con, client_t *const client, o
         ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
 
         switch (ev->response_type) {
+        case XCB_CONFIGURE_REQUEST:
+        case XCB_MAP_REQUEST:
+            handler(session, ev);
         case XCB_MOTION_NOTIFY:
             client_move(con, client, innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y);
             break;
@@ -147,8 +162,8 @@ static void move_and_wait(xcb_connection_t *const con, client_t *const client, o
     } while (!ungrab);
 }
 
-static void resize_and_wait(xcb_connection_t *const con, client_t *const client, offset_t ptrpos, offset_t innerpos, extent_t innersize,
-    uint8_t side)
+static void resize_and_wait(xcb_connection_t *const con, session_t *const session, client_t *const client, const eventhandler_t handler,
+    offset_t ptrpos, offset_t innerpos, extent_t innersize, uint8_t side)
 {
     xcb_generic_event_t *ev;
     xcb_motion_notify_event_t *mnev;
@@ -173,6 +188,9 @@ static void resize_and_wait(xcb_connection_t *const con, client_t *const client,
         updpos = innerpos;
 
         switch (ev->response_type) {
+        case XCB_CONFIGURE_REQUEST:
+        case XCB_MAP_REQUEST:
+            handler(session, ev);
         case XCB_MOTION_NOTIFY:
             if (side & RESIZE_LEFT) {
                 updsize.width -= ptrdelta.x;

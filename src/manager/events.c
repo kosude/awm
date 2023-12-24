@@ -76,7 +76,6 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     xcb_window_t win = ev->event;
 
     xcb_connection_t *con = session->con;
-    xcb_window_t root = session->root;
     clientset_t clientset = session->clientset;
     client_t *client;
 
@@ -97,7 +96,7 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     client_raise(con, client);
 
     if (ev->detail == XCB_BUTTON_INDEX_1 && (is_frame || ev->state & XCB_MOD_MASK_4)) {
-        drag_start_and_wait(con, root, client);
+        drag_start_and_wait(session, client, event_handle);
     }
 
     // propagate click events to client so the application can process them as usual

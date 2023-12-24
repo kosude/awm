@@ -14,7 +14,14 @@
 
 #include <xcb/xcb.h>
 
+// TODO: store event handlers in an array indexed by the event they handle (see 2bwm source code for example)
+
 typedef struct session_t session_t;
+
+/**
+ * Pointer to a function that takes an event and handles it accordingly.
+ */
+typedef void (*eventhandler_t)(session_t *const, xcb_generic_event_t *const);
 
 /**
  * Call the appropriate event handler callback function depending on the type of event given.
