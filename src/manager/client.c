@@ -130,6 +130,8 @@ void client_move(xcb_connection_t *const con, client_t *const client, const uint
         fx = x - client->properties.innermargin.left,
         fy = y - client->properties.innermargin.top;
 
+    // TODO: constrain to 0, 0 and monitor bounds if there are no adjacent monitors
+
     props->framerect.offset = (offset_t) {
         fx,
         fy

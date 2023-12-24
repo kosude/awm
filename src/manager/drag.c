@@ -8,13 +8,12 @@
 #include "drag.h"
 
 #include "manager/client.h"
-#include "util/geom.h"
 
 #include <stdlib.h>
 
 void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, client_t *const client) {
-    xcb_grab_pointer_reply_t *greply;
-    xcb_query_pointer_reply_t *qreply;
+    xcb_grab_pointer_reply_t *greply = NULL;
+    xcb_query_pointer_reply_t *qreply = NULL;
 
     uint8_t ungrab = 0;
     xcb_generic_event_t *ev;
@@ -26,6 +25,9 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
 
     // get pointer starting position
     qreply = xcb_query_pointer_reply(con, xcb_query_pointer(con, root), NULL);
+    if (!qreply) {
+        goto out;
+    }
     ptrpos = (offset_t) {
         qreply->root_x,
         qreply->root_y
@@ -43,10 +45,7 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC,
         XCB_NONE, XCB_NONE, XCB_CURRENT_TIME),
         NULL);
-
-    if (greply->status != XCB_GRAB_STATUS_SUCCESS) {
-        free(greply);
-
+    if (!greply || greply->status != XCB_GRAB_STATUS_SUCCESS) {
         goto out;
     }
 

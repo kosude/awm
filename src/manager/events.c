@@ -67,10 +67,8 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     }
 
 out:
-    LLOG("event_handle(): (handled) %s", xevent_str(t));
-    return;
+    LLOG("event_handle() handled %s", xevent_str(t));
 out_unhandled:
-    LLOG("event_handle(): %s", xevent_str(t));
     return;
 }
 

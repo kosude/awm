@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __util__geom_h
-#define __util__geom_h
+#ifndef __geom__rect_h
+#define __geom__rect_h
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 /**
- * A primitive structure with width and height values.
+ * A primitive structure with unsigned width and height values.
  */
 typedef struct extent_t {
     /** Rectangle width */
@@ -25,7 +25,7 @@ typedef struct extent_t {
 } extent_t;
 
 /**
- * A primitive structure with x and y position values.
+ * A primitive structure with signed x and y position values.
  */
 typedef struct offset_t {
     /** X position */
@@ -35,7 +35,7 @@ typedef struct offset_t {
 } offset_t;
 
 /**
- * A primitive structure with extent (size) and offset data.
+ * A primitive structure with unsigned extent (size) and signed offset data.
  */
 typedef struct rect_t {
     /** Extent (size) */
@@ -43,20 +43,6 @@ typedef struct rect_t {
     /** Offset (position) */
     offset_t offset;
 } rect_t;
-
-/**
- * A primitive structure with left, right, top, and bottom values.
- */
-typedef struct margin_t {
-    /** Left value */
-    uint32_t left;
-    /** Right value */
-    uint32_t right;
-    /** Top value */
-    uint32_t top;
-    /** Bottom value */
-    uint32_t bottom;
-} margin_t;
 
 #ifdef __cplusplus
     }
