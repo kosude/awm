@@ -12,7 +12,11 @@
 
 #include "manager/session.h"
 
-static uint8_t validate_output(xcb_connection_t *const con, const xcb_randr_output_t output, const xcb_timestamp_t tstamp);
+static uint8_t validate_output(
+    xcb_connection_t *const con,
+    const xcb_randr_output_t output,
+    const xcb_timestamp_t tstamp
+);
 
 uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
     xcb_generic_error_t *err;

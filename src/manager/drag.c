@@ -7,21 +7,64 @@
 
 #include "drag.h"
 
+#include "util/logging.h"
+
 #include "manager/client.h"
 
 #include <stdlib.h>
+
+typedef enum resize_side_t {
+    RESIZE_NONE     = 0x00,
+    RESIZE_LEFT     = 0x01,
+    RESIZE_RIGHT    = 0x02,
+    RESIZE_TOP      = 0x04,
+    RESIZE_BOTTOM   = 0x08,
+} resize_side_t;
+
+static uint8_t get_resize_side_mask(
+    offset_t ptrpos,
+    offset_t innerpos,
+    extent_t innersize,
+    margin_t framemarg
+);
+
+static void move_and_wait(
+    xcb_connection_t *const con,
+    client_t *const client,
+    offset_t ptrpos,
+    offset_t innerpos
+);
+
+static void resize_and_wait(
+    xcb_connection_t *const con,
+    client_t *const client,
+    offset_t ptrpos,
+    offset_t innerpos,
+    extent_t innersize,
+    uint8_t side
+);
 
 void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, client_t *const client) {
     xcb_grab_pointer_reply_t *greply = NULL;
     xcb_query_pointer_reply_t *qreply = NULL;
 
-    uint8_t ungrab = 0;
-    xcb_generic_event_t *ev;
-    xcb_motion_notify_event_t *mnev;
-
-    offset_t winpos;
+    margin_t framemarg = client->properties.innermargin;
+    offset_t innerpos;
+    extent_t innersize;
     offset_t ptrpos;
-    offset_t ptrdelta; // change in pointer position
+
+    uint8_t side;
+
+    // innerpos - the client expects this to be position of the inner window so we add the frame margin
+    innerpos = (offset_t) {
+        client->properties.framerect.offset.x + framemarg.left,
+        client->properties.framerect.offset.y + framemarg.top
+    };
+    // we also need to get innersize for inner, not frame
+    innersize = (extent_t) {
+        client->properties.framerect.extent.width - (framemarg.left + framemarg.right),
+        client->properties.framerect.extent.height - (framemarg.top + framemarg.bottom)
+    };
 
     // get pointer starting position
     qreply = xcb_query_pointer_reply(con, xcb_query_pointer(con, root), NULL);
@@ -33,11 +76,8 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
         qreply->root_y
     };
 
-    // get client starting position - client expects this to be position of the inner window
-    winpos = (offset_t) {
-        client->properties.framerect.offset.x + client->properties.innermargin.left,
-        client->properties.framerect.offset.y + client->properties.innermargin.top,
-    };
+    // determine if the window is being dragged at the edge, and if so which one(s)
+    side = get_resize_side_mask(ptrpos, innerpos, innersize, framemarg);
 
     // grab pointer
     greply = xcb_grab_pointer_reply(con, xcb_grab_pointer(con, 0, root,
@@ -49,17 +89,51 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
         goto out;
     }
 
+    if (side == RESIZE_NONE) {
+        move_and_wait(con, client, ptrpos, innerpos);
+    } else {
+        resize_and_wait(con, client, ptrpos, innerpos, innersize, side);
+    }
+
+    xcb_ungrab_pointer(con, XCB_CURRENT_TIME);
+
+    xcb_flush(con);
+
+out:
+    free(qreply);
+    free(greply);
+}
+
+static uint8_t get_resize_side_mask(offset_t ptrpos, offset_t innerpos, extent_t innersize, margin_t framemarg) {
+    resize_side_t inleft = RESIZE_LEFT * (ptrpos.x <= (int32_t) innerpos.x);
+    resize_side_t inright = RESIZE_RIGHT * (ptrpos.x >= (int32_t) (innerpos.x + innersize.width));
+    resize_side_t intop = RESIZE_TOP * (ptrpos.y <= (int32_t) (innerpos.y - (framemarg.top - framemarg.left)));
+    resize_side_t inbottom = RESIZE_BOTTOM * (ptrpos.y >= (int32_t) (innerpos.y + innersize.height));
+
+    return inleft | inright | intop | inbottom;
+}
+
+static void move_and_wait(xcb_connection_t *const con, client_t *const client, offset_t ptrpos, offset_t innerpos) {
+    xcb_generic_event_t *ev;
+    xcb_motion_notify_event_t *mnev;
+
+    offset_t ptrdelta;
+
+    uint8_t ungrab = 0;
+
     do {
         // wait for next event
         while (!(ev = xcb_wait_for_event(con))) {
             xcb_flush(con);
         }
 
+        // get change in pointer position
+        mnev = (xcb_motion_notify_event_t *) ev;
+        ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
+
         switch (ev->response_type) {
         case XCB_MOTION_NOTIFY:
-            mnev = (xcb_motion_notify_event_t *) ev;
-            ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
-            client_move(con, client, winpos.x + ptrdelta.x, winpos.y + ptrdelta.y);
+            client_move(con, client, innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y);
             break;
         case XCB_KEY_PRESS:
         case XCB_KEY_RELEASE:
@@ -71,12 +145,61 @@ void drag_start_and_wait(xcb_connection_t *const con, const xcb_window_t root, c
 
         free(ev);
     } while (!ungrab);
+}
 
-    xcb_ungrab_pointer(con, XCB_CURRENT_TIME);
+static void resize_and_wait(xcb_connection_t *const con, client_t *const client, offset_t ptrpos, offset_t innerpos, extent_t innersize,
+    uint8_t side)
+{
+    xcb_generic_event_t *ev;
+    xcb_motion_notify_event_t *mnev;
 
-    xcb_flush(con);
+    extent_t updsize;
+    offset_t updpos;
+    offset_t ptrdelta;
 
-out:
-    free(qreply);
-    free(greply);
+    uint8_t ungrab = 0;
+
+    do {
+        // wait for next event
+        while (!(ev = xcb_wait_for_event(con))) {
+            xcb_flush(con);
+        }
+
+        // get change in pointer position
+        mnev = (xcb_motion_notify_event_t *) ev;
+        ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
+
+        updsize = innersize;
+        updpos = innerpos;
+
+        switch (ev->response_type) {
+        case XCB_MOTION_NOTIFY:
+            if (side & RESIZE_LEFT) {
+                updsize.width -= ptrdelta.x;
+                updpos.x += ptrdelta.x;
+            }
+            if (side & RESIZE_RIGHT) {
+                updsize.width += ptrdelta.x;
+            }
+            if (side & RESIZE_TOP) {
+                updsize.height -= ptrdelta.y;
+                updpos.y += ptrdelta.y;
+            }
+            if (side & RESIZE_BOTTOM) {
+                updsize.height += ptrdelta.y;
+            }
+
+            client_resize(con, client, updsize.width, updsize.height);
+            client_move(con, client, updpos.x, updpos.y);
+            break;
+        case XCB_KEY_PRESS:
+        case XCB_KEY_RELEASE:
+        case XCB_BUTTON_PRESS:
+        case XCB_BUTTON_RELEASE:
+            ungrab = 1;
+            break;
+        }
+
+        free(ev);
+    } while (!ungrab);
 }

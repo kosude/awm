@@ -18,6 +18,7 @@ typedef struct client_t client_t;
 
 /**
  * Initiate and handle client click-and-drag functionality. This function does not return until the button is released and the window ungrabbed.
+ * Depending on the pointer's starting position relative to the client's frame, this function will determine whether to move or resize the window.
  */
 void drag_start_and_wait(
     xcb_connection_t *const con,

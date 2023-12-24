@@ -148,6 +148,7 @@ void client_move(xcb_connection_t *const con, client_t *const client, const uint
 
 void client_resize(xcb_connection_t *const con, client_t *const client, const uint32_t width, const uint32_t height) {
     xcb_window_t inner = client->inner;
+    xcb_window_t frame = client->frame;
     clientprops_t *props = &(client->properties);
 
     // get frame size
@@ -159,7 +160,12 @@ void client_resize(xcb_connection_t *const con, client_t *const client, const ui
         fheight
     };
 
-    // TODO: also resize the frame :)
+    xcb_configure_window(
+        con, frame,
+        XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+        (uint32_t []) {
+            fwidth, fheight
+        });
     xcb_configure_window(
         con, inner,
         XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
@@ -178,10 +184,7 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
 
     xcb_generic_error_t *err = NULL;
 
-    // TODO: stop hardcoding these values
-    // uint16_t
-    //     borderbuf_x = props.innermargin.left + props.innermargin.right,
-    //     borderbuf_y = props.innermargin.top + props.innermargin.bottom;
+    // TODO: stop hardcoding this value
     uint32_t framecol = 0xff0000;
 
     xcb_window_t frame = xcb_generate_id(con);
@@ -259,7 +262,8 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
 
     // TODO: stop hardcoding frame margin
     props.innermargin.top = 28;
-    props.innermargin.left = props.innermargin.right = props.innermargin.bottom = 4;
+    props.innermargin.bottom = 4;
+    props.innermargin.left = props.innermargin.right = 4; // make sure left and right are equal
 
     props.framerect.extent.width = geom->width + props.innermargin.left + props.innermargin.right;
     props.framerect.extent.height = geom->height + props.innermargin.top + props.innermargin.bottom;
