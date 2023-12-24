@@ -72,8 +72,8 @@ xcb_randr_output_t *randr_find_outputs(xcb_connection_t *const con, const xcb_wi
     xcb_randr_output_t *outputs, *valoutputs; // valoutputs is an array of validated outputs
     int outputn, valoutputn;
 
-    xcb_randr_get_screen_resources_current_reply_t *res = xcb_randr_get_screen_resources_current_reply(con,
-        xcb_randr_get_screen_resources_current(con, root), NULL);
+    xcb_randr_get_screen_resources_reply_t *res = xcb_randr_get_screen_resources_reply(con,
+        xcb_randr_get_screen_resources(con, root), NULL);
     if (!res) {
         return NULL;
     }
@@ -84,8 +84,8 @@ xcb_randr_output_t *randr_find_outputs(xcb_connection_t *const con, const xcb_wi
         *tstamp = stamp;
     }
 
-    outputn = xcb_randr_get_screen_resources_current_outputs_length(res);
-    outputs = xcb_randr_get_screen_resources_current_outputs(res);
+    outputn = xcb_randr_get_screen_resources_outputs_length(res);
+    outputs = xcb_randr_get_screen_resources_outputs(res);
 
     // validate each output, copying usable ones into valoutputs
     // valoutputs will probably be bigger than necessary, but that's at least more efficient than a bunch of reallocs in the for loop
