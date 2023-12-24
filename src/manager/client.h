@@ -12,8 +12,8 @@
     extern "C" {
 #endif
 
-#include "geom/margin.h"
-#include "geom/rect.h"
+#include "data/margin.h"
+#include "data/rect.h"
 
 #include <xcb/xcb.h>
 

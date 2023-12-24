@@ -12,7 +12,7 @@
     extern "C" {
 #endif
 
-#include "geom/rect.h"
+#include "data/rect.h"
 
 #include <xcb/xcb.h>
 #include <xcb/randr.h>

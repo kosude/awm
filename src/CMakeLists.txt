@@ -1,4 +1,6 @@
 set(SRCS
+    "data/htable.c"
+
     "init/main.c"
     "init/sighandle.c"
 
@@ -11,7 +13,6 @@ set(SRCS
     "manager/randr.c"
     "manager/session.c"
 
-    "util/htable.c"
     "util/xstr.c"
 )
 set(TARGET_NAME "awm")

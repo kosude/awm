@@ -12,7 +12,7 @@
     extern "C" {
 #endif
 
-#include "util/htable.h"
+#include "data/htable.h"
 
 typedef struct monitor_t monitor_t;
 
