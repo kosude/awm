@@ -7,6 +7,8 @@
 
 #include "sighandle.h"
 
+#include "plugins.h"
+
 #include "util/logging.h"
 
 #include "manager/session.h"
@@ -32,6 +34,9 @@ static void exit_cb(void) {
     LINFO("Window manager process terminating...");
 
     session_dealloc(cb_data.session);
+
+    pluginld_unload(cb_data.pluginld);
+
     xcb_disconnect(cb_data.con); // this must be done regardless of if there was an issue with connecting or not
 }
 

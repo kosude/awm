@@ -6,7 +6,7 @@
             "name": "(lldb) Launch",
             "program": "${workspaceFolder}/build/awm/awm",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build/",
             "preLaunchTask": "build project",
             "env": {
                 "DISPLAY": ":1"
@@ -19,7 +19,7 @@
             "program": "${workspaceFolder}/build/awm/awm",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build/awm/",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -34,7 +34,13 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build project"
+            "preLaunchTask": "build project",
+            "environment": [
+                {
+                    "name": "DISPLAY",
+                    "value": ":1"
+                }
+            ]
         }
     ],
     "version": "2.0.0"
