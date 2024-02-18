@@ -2,6 +2,7 @@ set(SRCS
     "data/htable.c"
 
     "init/main.c"
+    "init/plugins.c"
     "init/sighandle.c"
 
     "manager/client.c"
