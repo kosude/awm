@@ -80,6 +80,8 @@ DISPLAY=:$DISPLAY_NUM $(command -v xterm) &
 
 sleep 0.4
 
+cd "./build/"
+
 # run the window manager
 DISPLAY=:$DISPLAY_NUM \
     runtime $AWM_EXEC $AWM_ARGS \

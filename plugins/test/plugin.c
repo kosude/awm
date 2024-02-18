@@ -7,14 +7,22 @@
 
 #include <stdio.h>
 
-#if defined(_MSC_VER)
-    #define __export __declspec(dllexport)
-#elif defined(__GNUC__)
+#if defined(__GNUC__)
     #define __export __attribute__((visibility("default")))
 #else
     #define __export
 #endif
 
-__export void init() {
+/**
+ * Return the plugin's name
+ */
+__export const char *plugin__name() {
+    return "test";
+}
+
+/**
+ * Entrypoint, invoked when the plugin is loaded
+ */
+__export void plugin__init() {
     printf("A window manager plugin system\n");
 }
