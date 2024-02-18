@@ -25,6 +25,9 @@ typedef struct clientprops_t {
     rect_t framerect;
     /** Buffer/margin between the frame and inner window */
     margin_t innermargin;
+
+    /** Minimum frame size. This is hinted by applications and clamped to a standard minimum. */
+    extent_t mindims;
 } clientprops_t;
 
 /**
@@ -75,9 +78,10 @@ void client_focus(
 );
 
 /**
- * Move the client to the given coordinates, assuming those are of the inner window.
+ * Move the client to the given coordinates, assuming those are of the inner window. Returns 0 if no change occurred.
+ * The return value is guaranteed to be a bit-mask. 0b01 -> x-pos changed; 0b10 -> y-pos changed.
  */
-void client_move(
+uint8_t client_move(
     xcb_connection_t *const con,
     client_t *const client,
     const uint32_t x,
@@ -85,13 +89,14 @@ void client_move(
 );
 
 /**
- * Resize the client to the given dimensions, assuming those are of the inner window.
+ * Resize the client to the given dimensions, assuming those are of the inner window. Returns 0 if no change occurred.
+ * The return value is guaranteed to be a bit-mask. 0b01 -> width changed; 0b10 -> height changed.
  */
-void client_resize(
+uint8_t client_resize(
     xcb_connection_t *const con,
     client_t *const client,
-    const uint32_t width,
-    const uint32_t height
+    uint32_t width,
+    uint32_t height
 );
 
 #ifdef __cplusplus

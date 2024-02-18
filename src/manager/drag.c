@@ -174,6 +174,15 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
 
     uint8_t ungrab = 0;
 
+    // When resizing from top or left, the window is moved to counter it. Here we calculate the maximum position of this movement.
+    // We do this by getting the maximum change in position (window size minus the minimum inner-window size) and adding it to the initial position.
+    // We will clamp to this maximum position for when the window's minimum size is reached (from top or left edges).
+    offset_t maxpos;
+    maxpos.x = innerpos.x +
+        innersize.width - (client->properties.mindims.width - (client->properties.innermargin.left + client->properties.innermargin.right));
+    maxpos.y = innerpos.y +
+        innersize.height - (client->properties.mindims.height - (client->properties.innermargin.top + client->properties.innermargin.bottom));
+
     do {
         // wait for next event
         while (!(ev = xcb_wait_for_event(con))) {
@@ -187,6 +196,8 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
         updsize = innersize;
         updpos = innerpos;
 
+        uint8_t move = 0;
+
         switch (ev->response_type) {
         case XCB_CONFIGURE_REQUEST:
         case XCB_MAP_REQUEST:
@@ -195,6 +206,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             if (side & RESIZE_LEFT) {
                 updsize.width -= ptrdelta.x;
                 updpos.x += ptrdelta.x;
+                move = 1;
             }
             if (side & RESIZE_RIGHT) {
                 updsize.width += ptrdelta.x;
@@ -202,12 +214,27 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             if (side & RESIZE_TOP) {
                 updsize.height -= ptrdelta.y;
                 updpos.y += ptrdelta.y;
+                move = 1;
             }
             if (side & RESIZE_BOTTOM) {
                 updsize.height += ptrdelta.y;
             }
 
-            client_resize(con, client, updsize.width, updsize.height);
+            // dimc is a bit mask indicating if the width and height of the client has changed respectively.
+            uint8_t dimc = client_resize(con, client, updsize.width, updsize.height);
+
+            // break if we aren't moving the window (i.e. we aren't resizing from the top or left sides)
+            if (!move) {
+                break;
+            }
+
+            // move the window (clamped to maxpos)
+            if ((dimc & 0x1) == 0) {
+                updpos.x = maxpos.x;
+            }
+            if ((dimc & 0x2) == 0) {
+                updpos.y = maxpos.y;
+            }
             client_move(con, client, updpos.x, updpos.y);
             break;
         case XCB_KEY_PRESS:

@@ -121,16 +121,22 @@ void client_focus(xcb_connection_t *const con, client_t *const client) {
     xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, inner, XCB_CURRENT_TIME);
 }
 
-void client_move(xcb_connection_t *const con, client_t *const client, const uint32_t x, const uint32_t y) {
+uint8_t client_move(xcb_connection_t *const con, client_t *const client, const uint32_t x, const uint32_t y) {
     xcb_window_t frame = client->frame;
     clientprops_t *props = &(client->properties);
+
+    // coordinates for constraints
+    int32_t minx = 0 - (client->properties.framerect.extent.width - 30); // keep at least 30 pixels of the client on the screen
+    int32_t miny = 0;
 
     // get frame position
     int32_t
         fx = x - client->properties.innermargin.left,
         fy = y - client->properties.innermargin.top;
 
-    // TODO: constrain to 0, 0 and monitor bounds if there are no adjacent monitors
+    // TODO: constrain to monitor bounds if there are no adjacent monitors
+    if (fx < minx) fx = minx;
+    if (fy < miny) fy = miny;
 
     props->framerect.offset = (offset_t) {
         fx,
@@ -144,16 +150,36 @@ void client_move(xcb_connection_t *const con, client_t *const client, const uint
             fx, fy
         });
     xcb_flush(con);
+
+    uint8_t xc = (fx != minx);
+    uint8_t yc = (fy != miny);
+    return xc | (yc << 1);
 }
 
-void client_resize(xcb_connection_t *const con, client_t *const client, const uint32_t width, const uint32_t height) {
+uint8_t client_resize(xcb_connection_t *const con, client_t *const client, uint32_t width, uint32_t height) {
     xcb_window_t inner = client->inner;
     xcb_window_t frame = client->frame;
     clientprops_t *props = &(client->properties);
 
+    // dimensions for constraints
+    uint32_t minfwid = props->mindims.width;
+    uint32_t minfhei = props->mindims.height;
+    uint32_t minwid = minfwid - (props->innermargin.left + props->innermargin.right);
+    uint32_t minhei = minfhei - (props->innermargin.top + props->innermargin.bottom);
+
     // get frame size
     uint32_t fwidth = width + props->innermargin.left + props->innermargin.right;
     uint32_t fheight = height + props->innermargin.top + props->innermargin.bottom;
+
+    // constrain
+    if (fwidth < minfwid || (int) fwidth < 0) {
+        fwidth = minfwid;
+        width = minwid;
+    }
+    if (fheight < minfhei || (int) fheight < 0) {
+        fheight = minfhei;
+        height = minhei;
+    }
 
     props->framerect.extent = (extent_t) {
         fwidth,
@@ -173,6 +199,10 @@ void client_resize(xcb_connection_t *const con, client_t *const client, const ui
             width, height
         });
     xcb_flush(con);
+
+    uint8_t wc = (fwidth != minfwid);
+    uint8_t hc = (fheight != minfhei);
+    return wc | (hc << 1);
 }
 
 static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *const scr, client_t *const client) {
@@ -269,6 +299,11 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
     props.framerect.extent.height = geom->height + props.innermargin.top + props.innermargin.bottom;
     props.framerect.offset.x = geom->x;
     props.framerect.offset.y = geom->y;
+
+    // TODO: respect application hints for minimum dimensions
+    // currently clamped to 20 + margins.
+    props.mindims.width = 20 + props.innermargin.left + props.innermargin.right;
+    props.mindims.height = 20 + props.innermargin.top + props.innermargin.bottom;
 
     free(geom);
 
