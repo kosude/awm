@@ -3,6 +3,7 @@ set(SRCS
 
     "init/config.c"
     "init/main.c"
+    "init/plugins.c"
     "init/sighandle.c"
 
     "manager/client/client.c"

@@ -6,12 +6,16 @@
  */
 
 #include "init/config.h"
+#include "init/plugins.h"
 #include "init/sighandle.h"
 #include "manager/session.h"
 #include "util/logging.h"
 #include "util/xstr.h"
 
 #include <xcb/xcb.h>
+#include <stdlib.h>
+
+#define PLUGIN_BASE_DIR "./"
 
 xcb_connection_t *con;
 
@@ -46,6 +50,18 @@ int main(int argc, char **argv) {
         KILL();
     }
     LINFO("Connected to X on screen %d", scrnum);
+
+    // load plugins
+    uint32_t plpathcount;
+    if (plugin_find_all_paths(&plpathcount, NULL, PLUGIN_BASE_DIR) && plpathcount > 0) {
+        char *plpaths[plpathcount];
+        plugin_find_all_paths(NULL, plpaths, PLUGIN_BASE_DIR);
+
+        for (uint32_t i = 0; i < plpathcount; i++) {
+            LINFO("Found plugin at %s", plpaths[i]);
+            free(plpaths[i]);
+        }
+    }
 
     // initialise window manager session
     session = session_init(con, scrnum, &sconfig);
