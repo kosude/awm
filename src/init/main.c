@@ -15,11 +15,14 @@
 #include <xcb/xcb.h>
 #include <stdlib.h>
 
-#define PLUGIN_BASE_DIR "./"
+// TODO; provide CLI argument for this, and default it to ~/.config/awm/plugins/ or another location
+#define PLUGIN_BASE_DIR "./plugins/"
 
 xcb_connection_t *con;
 
 session_t session;
+
+pluginld_t pluginld;
 
 int main(int argc, char **argv) {
     // command-line and config file parsing
@@ -40,6 +43,7 @@ int main(int argc, char **argv) {
     // set callbacks for controlled exits + cleanup
     set_signal_callbacks((signal_callback_data_t){
         .con = con,
+        .pluginld = &pluginld,
         .session = &session
     });
 
@@ -52,16 +56,7 @@ int main(int argc, char **argv) {
     LINFO("Connected to X on screen %d", scrnum);
 
     // load plugins
-    uint32_t plpathcount;
-    if (plugin_find_all_paths(&plpathcount, NULL, PLUGIN_BASE_DIR) && plpathcount > 0) {
-        char *plpaths[plpathcount];
-        plugin_find_all_paths(NULL, plpaths, PLUGIN_BASE_DIR);
-
-        for (uint32_t i = 0; i < plpathcount; i++) {
-            LINFO("Found plugin at %s", plpaths[i]);
-            free(plpaths[i]);
-        }
-    }
+    pluginld = pluginld_load_all(PLUGIN_BASE_DIR);
 
     // initialise window manager session
     session = session_init(con, scrnum, &sconfig);

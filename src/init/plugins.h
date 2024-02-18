@@ -15,37 +15,29 @@
 #include <stdint.h>
 
 /**
- * A representation of an instance of a loaded plugin.
+ * An opaque handle to an instance of a loaded plugin.
  */
-typedef struct plugin_t {
-    void *dl;
-} plugin_t;
+typedef struct plugin_t plugin_t;
 
 /**
- * Find and return an array of paths to plugins that should be loaded at initialisation.
- * The specified base path will be searched (ensure it ends with a slash!). Results will be returned into plcount and (if not NULL) plarr.
- * 0 is returned if there was an error.
+ * Object to load and manage plugins
  */
-uint8_t plugin_find_all_paths(
-    uint32_t *plcount,
-    char **const plarr,
-    const char *const base
-);
+typedef struct pluginld_t {
+    plugin_t *plhead;
+} pluginld_t;
 
 /**
- * Load a plugin (shared library) at the specified path, relative to the current working directory. Best practice is for path to be absolute.
- * 0 is returned if there was an error.
+ * Initialise and return a plugin loader object, loading all user plugins.
  */
-uint8_t plugin_load(
-    plugin_t *const plugin,
+pluginld_t pluginld_load_all(
     const char *const path
 );
 
 /**
- * Unload the specified plugin.
+ * Tell the plugin loader object to unload all plugins and deallocate itself.
  */
-void plugin_unload(
-    const plugin_t plugin
+void pluginld_unload(
+    pluginld_t *const ld
 );
 
 #ifdef __cplusplus

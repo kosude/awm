@@ -31,5 +31,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(AWM_OFFICIAL_PLUGINS "Compile official plugins for awm" ON)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/" "${PROJECT_BINARY_DIR}/awm/") # rename build directory from src/ to awm/
+if (AWM_OFFICIAL_PLUGINS)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/plugins/")
+endif()

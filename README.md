@@ -23,6 +23,22 @@ Otherwise, you can specify a base configuration folder (which must contain a sub
 information.
 
 
+### Plugins
+
+awm is modular via its plugins system. Official plugins are provided, although awm can work without them either.
+
+#### Location
+
+Plugins are automatically located and loaded by awm at initialisation. In the future, a command-line argument as well as a standard location will be
+implemented (likely to be XDG-compliant, i.e. `$HOME/.config/awm/`) to be searched for window manager configuration. For the time being, though,
+the **current working directory** is used. Create a folder in the working directory called `plugins/`, and put plugins there.
+
+#### Specification
+
+Plugins are expected as **dynamic libraries**, compiled for the same architecture as awm. That is to say, 32-bit plugins won't work in 64-bit awm, and
+vice versa.
+
+
 ## Development
 
 Awm can be compiled to either 32-bit or 64-bit using the appropriate CMake toolchain (in [`cmake/tc/`](cmake/tc/)).

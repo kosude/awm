@@ -14,6 +14,7 @@
 
 typedef struct xcb_connection_t xcb_connection_t;
 typedef struct session_t session_t;
+typedef struct pluginld_t pluginld_t;
 
 /**
  * Data to be passed to signal handling callback functions.
@@ -21,6 +22,9 @@ typedef struct session_t session_t;
 typedef struct signal_callback_data_t {
     /** Connection which will be disconnected on exit. */
     xcb_connection_t *con;
+
+    /** Plugin loader to unload plugins with */
+    pluginld_t *pluginld;
 
     /** Session ptr to deallocate */
     session_t *session;

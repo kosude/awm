@@ -25,7 +25,7 @@
                 "tests/config"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build/",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -40,7 +40,13 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build project"
+            "preLaunchTask": "build project",
+            "environment": [
+                {
+                    "name": "DISPLAY",
+                    "value": ":1"
+                }
+            ]
         }
     ],
     "version": "2.0.0"

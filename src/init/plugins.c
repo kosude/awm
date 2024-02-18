@@ -14,7 +14,78 @@
 #include <errno.h>
 #include <string.h>
 
-uint8_t plugin_find_all_paths(uint32_t *plcount, char **const plarr, const char *const base) {
+typedef struct plugin_t {
+    void *dl;
+
+    struct plugin_t *next;
+} plugin_t;
+
+// Find all plugins by their absolute paths
+// 0 returned if error
+static uint8_t plugin_find_all_paths(
+    uint32_t *plcount,
+    char **const plarr,
+    const char *const base
+);
+
+// 0 returned if error
+static uint8_t plugin_load(
+    plugin_t *const plugin,
+    const char *const path
+);
+
+static void plugin_unload(
+    plugin_t *const plugin
+);
+
+pluginld_t pluginld_load_all(const char *const path) {
+    pluginld_t ld;
+
+    ld.plhead = NULL;
+
+    // get plugin object paths
+    uint32_t plpathcount;
+    if (plugin_find_all_paths(&plpathcount, NULL, path) && plpathcount > 0) {
+        char *plpaths[plpathcount];
+        plugin_find_all_paths(NULL, plpaths, path);
+
+        for (uint32_t i = 0; i < plpathcount; i++) {
+            const char *p = plpaths[i];
+
+            // load plugin
+            plugin_t pl;
+            if (!plugin_load(&pl, p)) {
+                goto cleanup;
+            }
+
+            plugin_t *pl_ptr = malloc(sizeof(plugin_t));
+
+            // insert to list
+            pl_ptr->next = ld.plhead;
+            ld.plhead = pl_ptr;
+
+cleanup:
+            free(plpaths[i]);
+        }
+    }
+
+    return ld;
+}
+
+void pluginld_unload(pluginld_t *const ld) {
+    plugin_t *cur, *next;
+
+    cur = ld->plhead;
+
+    while (cur) {
+        next = cur->next;
+        plugin_unload(cur);
+        free(cur);
+        cur = next;
+    }
+}
+
+static uint8_t plugin_find_all_paths(uint32_t *plcount, char **const plarr, const char *const base) {
     DIR *d;
     struct dirent *dir;
 
@@ -54,7 +125,7 @@ uint8_t plugin_find_all_paths(uint32_t *plcount, char **const plarr, const char 
     return 1;
 }
 
-uint8_t plugin_load(plugin_t *const plugin, const char *const path) {
+static uint8_t plugin_load(plugin_t *const plugin, const char *const path) {
     plugin_t p;
 
     void *dl = dlopen(path, RTLD_NOW);
@@ -64,10 +135,14 @@ uint8_t plugin_load(plugin_t *const plugin, const char *const path) {
     }
     dlerror(); // clear existing errors
 
+    p.next = NULL;
+
     memcpy(plugin, &p, sizeof(plugin_t));
     return 1;
 }
 
-void plugin_unload(const plugin_t plugin) {
-    dlclose(plugin.dl);
+static void plugin_unload(plugin_t *const plugin) {
+    if (dlclose(plugin->dl)) {
+        LERR("Failed to unload plugin: %s", dlerror());
+    }
 }
