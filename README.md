@@ -30,5 +30,4 @@ the **current working directory** is used. Create a folder in the working direct
 
 #### Specification
 
-Plugins are expected as **dynamic libraries**, compiled for the same architecture as awm. That is to say, 32-bit plugins won't work in 64-bit awm, and
-vice versa.
+Plugins are expected as **dynamic libraries**, compiled for the same architecture as awm.

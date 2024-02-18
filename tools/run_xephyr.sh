@@ -23,7 +23,7 @@ EOF
 
 # process to run the wm in (e.g. valgrind)
 runtime() {
-    valgrind --leak-check=full "$@"
+    valgrind --leak-check=full --track-origins=yes "$@"
 }
 
 # arg parsing
@@ -48,7 +48,7 @@ for arg in "$@" ; do
     esac
 done
 
-AWM_EXEC="./build/awm/awm" # relative to repository root directory
+AWM_EXEC="./awm/awm" # relative to build directory
 
 # get available display number
 DISPLAY_NUM=
@@ -78,6 +78,8 @@ done
 DISPLAY=:$DISPLAY_NUM $(command -v xterm) &
 
 sleep 0.4
+
+cd "./build/"
 
 # run the window manager
 DISPLAY=:$DISPLAY_NUM \

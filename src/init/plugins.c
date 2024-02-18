@@ -59,6 +59,7 @@ pluginld_t pluginld_load_all(const char *const path) {
             }
 
             plugin_t *pl_ptr = malloc(sizeof(plugin_t));
+            memcpy(pl_ptr, &pl, sizeof(plugin_t));
 
             // insert to list
             pl_ptr->next = ld.plhead;
@@ -130,12 +131,31 @@ static uint8_t plugin_load(plugin_t *const plugin, const char *const path) {
 
     void *dl = dlopen(path, RTLD_NOW);
     if (!dl) {
-        LERR("Failed to load plugin: %s [path '%s']", dlerror(), path);
+        LERR("Failed to load plugin: %s", dlerror());
         return 0;
     }
     dlerror(); // clear existing errors
 
+    p.dl = dl;
     p.next = NULL;
+
+    // TODO replace this invocation (which is just a test anyway) with a proper defined plugin interface
+    {
+        // run function to get name
+        typedef const char *(*plnamefn_t)(void);
+        const plnamefn_t plnamefn = (plnamefn_t) dlsym(p.dl, "plugin__name");
+        if (plnamefn) {
+            const char *name = (*plnamefn)();
+            LINFO("Loaded plugin '%s' from path %s", name, path);
+        }
+
+        // run init function
+        typedef void (*plinitfn_t)(void);
+        const plinitfn_t plinitfn = (plinitfn_t) dlsym(p.dl, "plugin__init");
+        if (plinitfn) {
+            (*plinitfn)();
+        }
+    }
 
     memcpy(plugin, &p, sizeof(plugin_t));
     return 1;

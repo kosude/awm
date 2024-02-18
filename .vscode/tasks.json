@@ -10,7 +10,9 @@
                 ".",
                 "-B",
                 "${workspaceFolder}/build",
+                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-clang.cmake",
                 "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
+                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-gnu.cmake",
 
                 "-DAWM_OFFICIAL_PLUGINS=ON",
 
