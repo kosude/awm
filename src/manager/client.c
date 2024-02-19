@@ -52,7 +52,7 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
         goto out;
     }
 
-    xcb_window_t frame = client.frame;
+    const xcb_window_t frame = client.frame;
 
     // reparent inner under frame...
     xcb_void_cookie_t rcookies[3];
@@ -92,8 +92,8 @@ out:
 }
 
 void client_frame_destroy(xcb_connection_t *const con, client_t *const client, const xcb_window_t root) {
-    xcb_window_t inner = client->inner;
-    xcb_window_t frame = client->frame;
+    const xcb_window_t inner = client->inner;
+    const xcb_window_t frame = client->frame;
 
     // request to reparent under root
     // note, this results in BadWindow error (for some reason), but doesn't seem to cause any problems
@@ -107,7 +107,7 @@ void client_frame_destroy(xcb_connection_t *const con, client_t *const client, c
 }
 
 void client_raise(xcb_connection_t *const con, client_t *const client) {
-    xcb_window_t frame = client->frame;
+    const xcb_window_t frame = client->frame;
 
     xcb_configure_window(con, frame,
         XCB_CONFIG_WINDOW_STACK_MODE,
@@ -116,18 +116,18 @@ void client_raise(xcb_connection_t *const con, client_t *const client) {
 }
 
 void client_focus(xcb_connection_t *const con, client_t *const client) {
-    xcb_window_t inner = client->inner;
+    const xcb_window_t inner = client->inner;
 
     xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, inner, XCB_CURRENT_TIME);
 }
 
 uint8_t client_move(xcb_connection_t *const con, client_t *const client, const uint32_t x, const uint32_t y) {
-    xcb_window_t frame = client->frame;
-    clientprops_t *props = &(client->properties);
+    const xcb_window_t frame = client->frame;
+    clientprops_t *const props = &(client->properties);
 
     // coordinates for constraints
-    int32_t minx = 0 - (client->properties.framerect.extent.width - 30); // keep at least 30 pixels of the client on the screen
-    int32_t miny = 0;
+    const int32_t minx = 0 - (client->properties.framerect.extent.width - 30); // keep at least 30 pixels of the client on the screen
+    const int32_t miny = 0;
 
     // get frame position
     int32_t
@@ -157,15 +157,15 @@ uint8_t client_move(xcb_connection_t *const con, client_t *const client, const u
 }
 
 uint8_t client_resize(xcb_connection_t *const con, client_t *const client, uint32_t width, uint32_t height) {
-    xcb_window_t inner = client->inner;
-    xcb_window_t frame = client->frame;
-    clientprops_t *props = &(client->properties);
+    const xcb_window_t inner = client->inner;
+    const xcb_window_t frame = client->frame;
+    clientprops_t *const props = &(client->properties);
 
     // dimensions for constraints
-    uint32_t minfwid = props->mindims.width;
-    uint32_t minfhei = props->mindims.height;
-    uint32_t minwid = minfwid - (props->innermargin.left + props->innermargin.right);
-    uint32_t minhei = minfhei - (props->innermargin.top + props->innermargin.bottom);
+    const uint32_t minfwid = props->mindims.width;
+    const uint32_t minfhei = props->mindims.height;
+    const uint32_t minwid = minfwid - (props->innermargin.left + props->innermargin.right);
+    const uint32_t minhei = minfhei - (props->innermargin.top + props->innermargin.bottom);
 
     // get frame size
     uint32_t fwidth = width + props->innermargin.left + props->innermargin.right;
@@ -200,22 +200,22 @@ uint8_t client_resize(xcb_connection_t *const con, client_t *const client, uint3
         });
     xcb_flush(con);
 
-    uint8_t wc = (fwidth != minfwid);
-    uint8_t hc = (fheight != minfhei);
+    const uint8_t wc = (fwidth != minfwid);
+    const uint8_t hc = (fheight != minfhei);
     return wc | (hc << 1);
 }
 
 static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *const scr, client_t *const client) {
-    xcb_window_t inner = client->inner;
-    clientprops_t props = client->properties;
+    const xcb_window_t inner = client->inner;
+    const clientprops_t props = client->properties;
 
-    xcb_window_t root = scr->root;
-    xcb_window_t rootvis = scr->root_visual;
+    const xcb_window_t root = scr->root;
+    const xcb_window_t rootvis = scr->root_visual;
 
     xcb_generic_error_t *err = NULL;
 
     // TODO: stop hardcoding this value
-    uint32_t framecol = 0xff0000;
+    const uint32_t framecol = 0xff0000;
 
     xcb_window_t frame = xcb_generate_id(con);
 
@@ -249,8 +249,8 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
     xcb_generic_error_t *err;
     xcb_void_cookie_t vcookies[4];
 
-    xcb_window_t inner = client->inner;
-    xcb_window_t frame = client->frame;
+    const xcb_window_t inner = client->inner;
+    const xcb_window_t frame = client->frame;
 
     // request to recieve events on frame
     vcookies[0] = xcb_change_window_attributes_checked(con, frame, XCB_CW_EVENT_MASK,
@@ -288,7 +288,7 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
     clientprops_t props;
 
     // get window geometry
-    xcb_get_geometry_reply_t *geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
+    xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
 
     // TODO: stop hardcoding frame margin
     props.innermargin.top = 28;

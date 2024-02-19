@@ -58,7 +58,7 @@ void drag_start_and_wait(session_t *const session, client_t *const client, const
     xcb_grab_pointer_reply_t *greply = NULL;
     xcb_query_pointer_reply_t *qreply = NULL;
 
-    margin_t framemarg = client->properties.innermargin;
+    const margin_t framemarg = client->properties.innermargin;
     offset_t innerpos;
     extent_t innersize;
     offset_t ptrpos;
@@ -115,10 +115,10 @@ out:
 }
 
 static uint8_t get_resize_side_mask(offset_t ptrpos, offset_t innerpos, extent_t innersize, margin_t framemarg) {
-    resize_side_t inleft = RESIZE_LEFT * (ptrpos.x <= (int32_t) innerpos.x);
-    resize_side_t inright = RESIZE_RIGHT * (ptrpos.x >= (int32_t) (innerpos.x + innersize.width));
-    resize_side_t intop = RESIZE_TOP * (ptrpos.y <= (int32_t) (innerpos.y - (framemarg.top - framemarg.left)));
-    resize_side_t inbottom = RESIZE_BOTTOM * (ptrpos.y >= (int32_t) (innerpos.y + innersize.height));
+    const resize_side_t inleft =    RESIZE_LEFT * (ptrpos.x <= (int32_t) innerpos.x);
+    const resize_side_t inright =   RESIZE_RIGHT * (ptrpos.x >= (int32_t) (innerpos.x + innersize.width));
+    const resize_side_t intop =     RESIZE_TOP * (ptrpos.y <= (int32_t) (innerpos.y - (framemarg.top - framemarg.left)));
+    const resize_side_t inbottom =  RESIZE_BOTTOM * (ptrpos.y >= (int32_t) (innerpos.y + innersize.height));
 
     return inleft | inright | intop | inbottom;
 }
@@ -177,11 +177,12 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
     // When resizing from top or left, the window is moved to counter it. Here we calculate the maximum position of this movement.
     // We do this by getting the maximum change in position (window size minus the minimum inner-window size) and adding it to the initial position.
     // We will clamp to this maximum position for when the window's minimum size is reached (from top or left edges).
-    offset_t maxpos;
-    maxpos.x = innerpos.x +
-        innersize.width - (client->properties.mindims.width - (client->properties.innermargin.left + client->properties.innermargin.right));
-    maxpos.y = innerpos.y +
-        innersize.height - (client->properties.mindims.height - (client->properties.innermargin.top + client->properties.innermargin.bottom));
+    const offset_t maxpos = {
+        .x = innerpos.x +
+            innersize.width - (client->properties.mindims.width - (client->properties.innermargin.left + client->properties.innermargin.right)),
+        .y = innerpos.y +
+            innersize.height - (client->properties.mindims.height - (client->properties.innermargin.top + client->properties.innermargin.bottom))
+    };
 
     do {
         // wait for next event
@@ -221,7 +222,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             }
 
             // dimc is a bit mask indicating if the width and height of the client has changed respectively.
-            uint8_t dimc = client_resize(con, client, updsize.width, updsize.height);
+            const uint8_t dimc = client_resize(con, client, updsize.width, updsize.height);
 
             // break if we aren't moving the window (i.e. we aren't resizing from the top or left sides)
             if (!move) {

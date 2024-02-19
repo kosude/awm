@@ -27,8 +27,8 @@ clientset_t clientset_init(void) {
 
 void clientset_dealloc(clientset_t *const set) {
     htable_u32_t
-        *iht = set->byinner_ht,
-        *fht = set->byframe_ht;
+        *const iht = set->byinner_ht,
+        *const fht = set->byframe_ht;
 
     // htable gives errors if either table is NULL
     if (iht && fht) {
@@ -41,10 +41,10 @@ void clientset_dealloc(clientset_t *const set) {
 
 uint8_t clientset_push(clientset_t *const set, client_t *const client) {
     htable_u32_t
-        *iht = set->byinner_ht,
-        *fht = set->byframe_ht;
+        *const iht = set->byinner_ht,
+        *const fht = set->byframe_ht;
 
-    uint32_t
+    const uint32_t
         ikey = (uint32_t) client->inner,
         fkey = (uint32_t) client->frame;
 

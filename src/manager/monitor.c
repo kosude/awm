@@ -44,7 +44,7 @@ monitor_t monitor_init(xcb_connection_t *const con, const xcb_randr_output_t out
     m.dims.offset.y = crtcinfo->y;
 
     // printing monitor information in debug context
-    char *name = (char *) xcb_randr_get_output_info_name(outputinfo);
+    const char *const name = (const char *) xcb_randr_get_output_info_name(outputinfo);
     LLOG(
         "New monitor: output 0x%08x\n"
         "\tname = \"%s\"\n"
@@ -65,7 +65,7 @@ monitor_t **monitor_find_all(xcb_connection_t *const con, const xcb_window_t roo
     xcb_timestamp_t tstamp;
 
     uint32_t outputn;
-    xcb_randr_output_t *outputs = randr_find_outputs(con, root, &outputn, &tstamp);
+    xcb_randr_output_t *const outputs = randr_find_outputs(con, root, &outputn, &tstamp);
 
     // return outputn
     if (len) {

@@ -25,7 +25,7 @@ monitorset_t monitorset_init(void) {
 }
 
 void monitorset_dealloc(monitorset_t *const set) {
-    htable_u32_t *ht = set->byoutput_ht;
+    htable_u32_t *const ht = set->byoutput_ht;
 
     if (ht) {
         htable_u32_free(ht, free_monitor_cb);
@@ -35,10 +35,10 @@ void monitorset_dealloc(monitorset_t *const set) {
 }
 
 uint8_t monitorset_push(monitorset_t *const set, monitor_t *const monitor) {
-    htable_u32_t *ht = set->byoutput_ht;
-    uint32_t key = (uint32_t) monitor->output;
+    htable_u32_t *const ht = set->byoutput_ht;
+    const uint32_t key = (uint32_t) monitor->output;
 
-    htable_err_t err = htable_u32_set(ht, key, (void *) monitor);
+    const htable_err_t err = htable_u32_set(ht, key, (void *) monitor);
 
     if (!err) {
         // no errors

@@ -47,7 +47,7 @@ static void handle_configure_request(
 );
 
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
-    uint8_t t = ev->response_type;
+    const uint8_t t = ev->response_type;
 
     switch (t) {
         case XCB_BUTTON_PRESS:
@@ -73,10 +73,10 @@ out_unhandled:
 }
 
 static void handle_button_press(session_t *const session, xcb_button_press_event_t *const ev) {
-    xcb_window_t win = ev->event;
+    const xcb_window_t win = ev->event;
 
-    xcb_connection_t *con = session->con;
-    clientset_t clientset = session->clientset;
+    xcb_connection_t *const con = session->con;
+    const clientset_t clientset = session->clientset;
     client_t *client;
 
     uint8_t is_frame = 1;
@@ -105,12 +105,12 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
 }
 
 static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event_t *const ev) {
-    xcb_window_t win = ev->window;
-    xcb_window_t parent = ev->event; // we can get parent like this as we would have registered substructure-notify on the window
+    const xcb_window_t win = ev->window;
+    const xcb_window_t parent = ev->event; // we can get parent like this as we would have registered substructure-notify on the window
 
-    xcb_connection_t *con = session->con;
-    xcb_window_t root = session->root;
-    clientset_t clientset = session->clientset;
+    xcb_connection_t *const con = session->con;
+    const xcb_window_t root = session->root;
+    const clientset_t clientset = session->clientset;
 
     // if the window's parent is the root window, then we know that win is a frame or hasnt been reparented/managed
     if (parent == root) {
@@ -133,8 +133,8 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
 }
 
 static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {
-    xcb_window_t win = ev->window;
-    xcb_connection_t *con = session->con;
+    const xcb_window_t win = ev->window;
+    xcb_connection_t *const con = session->con;
 
     client_t *client;
 
@@ -158,11 +158,11 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {
-    xcb_window_t win = ev->window;
-    uint16_t evmask = ev->value_mask;
+    const xcb_window_t win = ev->window;
+    const uint16_t evmask = ev->value_mask;
 
-    xcb_connection_t *con = session->con;
-    clientset_t clientset = session->clientset;
+    xcb_connection_t *const con = session->con;
+    const clientset_t clientset = session->clientset;
     client_t *client;
 
     // attempt to get client by window handle; if NULL, we assume this window isn't managed and therefore (in practice) not yet mapped

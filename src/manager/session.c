@@ -95,8 +95,8 @@ void session_dealloc(session_t *const session) {
 }
 
 client_t *session_manage_client(session_t *const session, xcb_window_t win) {
-    xcb_connection_t *con = session->con;
-    xcb_screen_t *scr = session->scr;
+    xcb_connection_t *const con = session->con;
+    xcb_screen_t *const scr = session->scr;
 
     clientset_t clientset = session->clientset;
 
@@ -105,7 +105,7 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
     // TODO: consider windows that shouldn't be framed like this (dropdowns, fullscreen, etc)
     //       i.e. get window X properties (ICCCM + EWMH)
     // create a framed client for the window
-    client_t *client = malloc(sizeof(client_t));
+    client_t *const client = malloc(sizeof(client_t));
     if (!client) {
         LFATAL("malloc() fault");
         KILL();
@@ -138,7 +138,7 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
 }
 
 void session_handle_next_event(session_t *const session) {
-    xcb_connection_t *con = session->con;
+    xcb_connection_t *const con = session->con;
 
     xcb_flush(con);
 
@@ -160,8 +160,8 @@ void session_handle_next_event(session_t *const session) {
 }
 
 void session_update_monitorset(session_t *const session) {
-    xcb_connection_t *con = session->con;
-    xcb_window_t root = session->root;
+    xcb_connection_t *const con = session->con;
+    const xcb_window_t root = session->root;
 
     monitorset_t monitorset = session->monitorset;
 
@@ -197,8 +197,8 @@ static void register_wm_substructure_events(xcb_connection_t *const con, const x
 }
 
 static void manage_existing_clients(session_t *const session) {
-    xcb_connection_t *con = session->con;
-    xcb_window_t root = session->root;
+    xcb_connection_t *const con = session->con;
+    const xcb_window_t root = session->root;
 
     // get window tree
     xcb_query_tree_reply_t *tree = xcb_query_tree_reply(con,

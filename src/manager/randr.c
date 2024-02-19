@@ -56,9 +56,9 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
 }
 
 void randr_event_handle(session_t *const session, xcb_generic_event_t *const ev) {
-    uint8_t randrbase = session->randrbase;
+    const uint8_t randrbase = session->randrbase;
 
-    uint8_t t = randrbase + ev->response_type;
+    const uint8_t t = randrbase + ev->response_type;
 
     // TODO: XCB_RANDR_NOTIFY_CRTC_CHANGE and XCB_RANDR_NOTIFY_OUTPUT_CHANGE - keep stored monitors up-to-date
     switch (t) {
@@ -83,7 +83,7 @@ xcb_randr_output_t *randr_find_outputs(xcb_connection_t *const con, const xcb_wi
     }
 
     // get consistent information from the server
-    xcb_timestamp_t stamp = res->config_timestamp;
+    const xcb_timestamp_t stamp = res->config_timestamp;
     if (tstamp) {
         *tstamp = stamp;
     }
