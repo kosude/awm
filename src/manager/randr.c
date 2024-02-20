@@ -46,8 +46,8 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
     // queyr randr presence and retrieve randr base event
     const xcb_query_extension_reply_t *randr = xcb_get_extension_data(con, &xcb_randr_id);
     if (!randr->present) {
-        LFATAL("RandR is not present");
-        KILL();
+        LERR("RandR is not present, falling back to Xinerama.");
+        return 0;
     }
     randrbase = randr->first_event;
 
@@ -58,7 +58,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
     if (err) {
         LFATAL("Failed to query RandR version: %s", xerrcode_str(err->error_code));
         free(err);
-        KILL();
+        return 0;
     }
     has_randr_1_5 = (v->major_version >= 1) && (v->minor_version >= 5);
     LINFO("Found RandR %u.%u %s", v->major_version, v->minor_version, (has_randr_1_5) ? "(>=1.5)" : "<1.5");
@@ -74,7 +74,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
     if ((err = xcb_request_check(con, c))) {
         LFATAL("Failed to initialise RandR extension");
         free(err);
-        KILL();
+        return 0;
     }
     xcb_flush(con);
 

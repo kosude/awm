@@ -8,7 +8,6 @@
 #include "xinerama.h"
 
 #include "util/logging.h"
-
 #include "manager/monitor.h"
 
 #include <xcb/xinerama.h>

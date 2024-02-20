@@ -66,11 +66,14 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     // listen to root events
     register_wm_substructure_events(con, root);
 
-    // init randr and find monitors
-    session.randrbase = randr_init(con, root);
+    // init randr (or xinerama, fallback) and find monitors
+    // TODO option to force Xinerama
+    if (!(session.randrbase = randr_init(con, root))) {
+        xinerama_init(con);
+    }
+
     session.monitorset = monitorset_init();
     session_update_monitorset(&session);
-    // xinerama_init(con);
 
     // initialise client set
     session.clientset = clientset_init();
@@ -141,6 +144,7 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
 
 void session_handle_next_event(session_t *const session) {
     xcb_connection_t *const con = session->con;
+    const uint8_t randrbase = session->randrbase;
 
     xcb_flush(con);
 
@@ -156,7 +160,9 @@ void session_handle_next_event(session_t *const session) {
 
     // handle the next event
     event_handle(session, ev);
-    randr_event_handle(session, ev);
+    if (randrbase) {
+        randr_event_handle(session, ev);
+    }
 
     free(ev);
 }
@@ -170,8 +176,11 @@ void session_update_monitorset(session_t *const session) {
     monitor_t **monitors;
     uint32_t monitorn;
 
-    monitors = randr_query_monitors(con, root, &monitorn);
-    // monitors = xinerama_query_monitors(con, &monitorn);
+    if (session->randrbase) {
+        monitors = randr_query_monitors(con, root, &monitorn);
+    } else {
+        monitors = xinerama_query_monitors(con, &monitorn);
+    }
 
     for (uint32_t i = 0; i < monitorn; i++) {
         monitorset_push(&monitorset, monitors[i]);
