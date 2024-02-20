@@ -21,7 +21,7 @@
  * Data for a display monitor, indexed by RandR -- part of a singly linked list of monitors.
  */
 typedef struct monitor_t {
-    /** Corresponding output ID */
+    /** Corresponding output ID in RandR */
     xcb_randr_output_t output;
 
     /** Monitor dimensions and positional offset data */

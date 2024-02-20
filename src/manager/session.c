@@ -14,6 +14,7 @@
 #include "manager/events.h"
 #include "manager/monitor.h"
 #include "manager/randr.h"
+#include "manager/xinerama.h"
 
 #include <xcb/xcb_aux.h>
 #include <string.h>
@@ -66,9 +67,10 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     register_wm_substructure_events(con, root);
 
     // init randr and find monitors
-    session.randrbase = randr_init(con, root);
-    session.monitorset = monitorset_init();
-    session_update_monitorset(&session);
+    // session.randrbase = randr_init(con, root);
+    // session.monitorset = monitorset_init();
+    // session_update_monitorset(&session);
+    xinerama_init(con);
 
     // initialise client set
     session.clientset = clientset_init();
