@@ -142,8 +142,8 @@ static xcb_randr_output_t *randr_find_outputs_1_4(xcb_connection_t *const con, c
     xcb_randr_output_t *outputs;
     int32_t outputn;
 
-    xcb_randr_get_screen_resources_reply_t *res = xcb_randr_get_screen_resources_reply(con,
-        xcb_randr_get_screen_resources(con, root), NULL);
+    xcb_randr_get_screen_resources_current_reply_t *res = xcb_randr_get_screen_resources_current_reply(con,
+        xcb_randr_get_screen_resources_current(con, root), NULL);
     if (!res) {
         return NULL;
     }
@@ -153,9 +153,9 @@ static xcb_randr_output_t *randr_find_outputs_1_4(xcb_connection_t *const con, c
         *tstamp = res->config_timestamp;
     }
 
-    outputn = xcb_randr_get_screen_resources_outputs_length(res);
+    outputn = xcb_randr_get_screen_resources_current_outputs_length(res);
     outputs = malloc(sizeof(xcb_randr_output_t) * outputn);
-    memcpy(outputs, xcb_randr_get_screen_resources_outputs(res), sizeof(xcb_randr_output_t) * outputn);
+    memcpy(outputs, xcb_randr_get_screen_resources_current_outputs(res), sizeof(xcb_randr_output_t) * outputn);
 
     if (len) {
         *len = outputn;
