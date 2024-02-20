@@ -22,6 +22,8 @@ typedef struct monitor_t monitor_t;
 typedef struct monitorset_t {
     /** Table of monitors in the set, indexed by their output id */
     htable_u32_t *byoutput_ht;
+    /** Linked list of monitors in the set. This is maintained in case of monitors that can't be indexed by output, e.g. those from Xinerama. */
+    monitor_t *listhead;
 } monitorset_t;
 
 /**

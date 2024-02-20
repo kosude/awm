@@ -16,6 +16,7 @@
 monitor_t monitor_init(xcb_connection_t *const con, const xcb_randr_output_t output, const xcb_timestamp_t tstamp) {
     monitor_t m;
     m.output = output;
+    m.next = NULL;
 
     xcb_randr_get_output_info_reply_t *outputinfo;
     xcb_randr_get_crtc_info_reply_t *crtcinfo;
@@ -62,6 +63,7 @@ out2:
 monitor_t monitor_init_xinerama(const xcb_xinerama_screen_info_t *info) {
     monitor_t m;
     m.output = UINT32_MAX;
+    m.next = NULL;
 
     m.dims = (rect_t) {
         .extent = {

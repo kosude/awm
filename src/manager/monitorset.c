@@ -13,34 +13,42 @@
 
 #include <string.h>
 
-static void free_monitor_cb(
-    void *const monitor
-);
-
 monitorset_t monitorset_init(void) {
     monitorset_t set;
     set.byoutput_ht = htable_u32_new();
+    set.listhead = NULL;
 
     return set;
 }
 
 void monitorset_dealloc(monitorset_t *const set) {
-    htable_u32_t *const ht = set->byoutput_ht;
+    // free monitors by linked list
+    monitor_t *cur = set->listhead;
+    monitor_t *next;
+    while (cur) {
+        next = cur->next;
+        free(cur);
+        cur = next;
+    }
 
+    htable_u32_t *const ht = set->byoutput_ht;
     if (ht) {
-        htable_u32_free(ht, free_monitor_cb);
+        htable_u32_free(ht, NULL);
     }
 
     memset(set, 0, sizeof(monitorset_t));
 }
 
 uint8_t monitorset_push(monitorset_t *const set, monitor_t *const monitor) {
+    // push to front of list
+    monitor->next = set->listhead;
+    set->listhead = monitor;
+
     htable_u32_t *const ht = set->byoutput_ht;
     const uint32_t key = (uint32_t) monitor->output;
 
     if (key == UINT32_MAX) {
         // key is set to max on monitors created from Xinerama, so output isnt valid, and so we don't add it to the byoutput htable
-        // TODO store it some other way (i.e. linked list)
         return 1;
     }
 
@@ -56,8 +64,4 @@ uint8_t monitorset_push(monitorset_t *const set, monitor_t *const monitor) {
     }
 
     return 0;
-}
-
-static void free_monitor_cb(void *const monitor) {
-    free(monitor);
 }

@@ -27,6 +27,9 @@ typedef struct monitor_t {
 
     /** Monitor dimensions and positional offset data */
     rect_t dims;
+
+    /** Next monitor ptr in list */
+    struct monitor_t *next;
 } monitor_t;
 
 /**

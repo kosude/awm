@@ -63,12 +63,21 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     root = scr->root;
     session.root = root;
 
+    // TODO option to force Xinerama
+    uint8_t force_xinerama = 1;
+
+    // prefetch X extensions
+    if (force_xinerama) {
+        xcb_prefetch_extension_data(con, &xcb_xinerama_id);
+    } else {
+        xcb_prefetch_extension_data(con, &xcb_randr_id);
+    }
+
     // listen to root events
     register_wm_substructure_events(con, root);
 
     // init randr (or xinerama, fallback) and find monitors
-    // TODO option to force Xinerama
-    if (!(session.randrbase = randr_init(con, root))) {
+    if (force_xinerama || !(session.randrbase = randr_init(con, root))) {
         xinerama_init(con);
     }
 
