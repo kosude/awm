@@ -7,9 +7,8 @@
 
 #include "clientset.h"
 
-#include "util/logging.h"
-
 #include "manager/client.h"
+#include "util/logging.h"
 
 #include <string.h>
 

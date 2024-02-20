@@ -4,15 +4,15 @@ set(SRCS
     "init/main.c"
     "init/sighandle.c"
 
+    "manager/multihead/monitor.c"
+    "manager/multihead/monitorset.c"
+    "manager/multihead/randr.c"
+    "manager/multihead/xinerama.c"
     "manager/client.c"
     "manager/clientset.c"
     "manager/drag.c"
     "manager/events.c"
-    "manager/monitor.c"
-    "manager/monitorset.c"
-    "manager/randr.c"
     "manager/session.c"
-    "manager/xinerama.c"
 
     "util/xstr.c"
 )

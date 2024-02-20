@@ -7,9 +7,8 @@
 
 #include "sighandle.h"
 
-#include "util/logging.h"
-
 #include "manager/session.h"
+#include "util/logging.h"
 
 #include <xcb/xcb.h>
 #include <signal.h>

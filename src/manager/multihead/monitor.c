@@ -7,9 +7,8 @@
 
 #include "monitor.h"
 
+#include "manager/multihead/randr.h"
 #include "util/logging.h"
-
-#include "manager/randr.h"
 
 #include <stdlib.h>
 

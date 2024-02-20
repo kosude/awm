@@ -7,12 +7,11 @@
 
 #include "events.h"
 
-#include "util/logging.h"
-#include "util/xstr.h"
-
 #include "manager/client.h"
 #include "manager/drag.h"
 #include "manager/session.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 /**
  * Handle an event of type XCB_BUTTON_PRESS.

@@ -7,8 +7,8 @@
 
 #include "xinerama.h"
 
+#include "manager/multihead/monitor.h"
 #include "util/logging.h"
-#include "manager/monitor.h"
 
 #include <xcb/xinerama.h>
 

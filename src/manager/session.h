@@ -12,8 +12,8 @@
     extern "C" {
 #endif
 
+#include "manager/multihead/monitorset.h"
 #include "manager/clientset.h"
-#include "manager/monitorset.h"
 
 #include <xcb/xcb.h>
 

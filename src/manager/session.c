@@ -7,14 +7,13 @@
 
 #include "session.h"
 
-#include "util/logging.h"
-#include "util/xstr.h"
-
+#include "manager/multihead/monitor.h"
+#include "manager/multihead/randr.h"
+#include "manager/multihead/xinerama.h"
 #include "manager/client.h"
 #include "manager/events.h"
-#include "manager/monitor.h"
-#include "manager/randr.h"
-#include "manager/xinerama.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 #include <xcb/xcb_aux.h>
 #include <string.h>

@@ -7,11 +7,10 @@
 
 #include "randr.h"
 
+#include "manager/multihead/monitor.h"
+#include "manager/session.h"
 #include "util/logging.h"
 #include "util/xstr.h"
-
-#include "manager/session.h"
-#include "manager/monitor.h"
 
 #include <string.h>
 #include <stdio.h>

@@ -5,11 +5,10 @@
  *   See the LICENCE file for more information.
  */
 
-#include "util/logging.h"
-#include "util/xstr.h"
-
 #include "init/sighandle.h"
 #include "manager/session.h"
+#include "util/logging.h"
+#include "util/xstr.h"
 
 #include <xcb/xcb.h>
 

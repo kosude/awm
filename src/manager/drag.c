@@ -7,10 +7,9 @@
 
 #include "drag.h"
 
-#include "util/logging.h"
-
 #include "manager/client.h"
 #include "manager/session.h"
+#include "util/logging.h"
 
 #include <stdlib.h>
 
