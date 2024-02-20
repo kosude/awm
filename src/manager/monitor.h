@@ -16,6 +16,7 @@
 
 #include <xcb/xcb.h>
 #include <xcb/randr.h>
+#include <xcb/xinerama.h>
 
 /**
  * Data for a display monitor, indexed by RandR -- part of a singly linked list of monitors.
@@ -38,12 +39,10 @@ monitor_t monitor_init(
 );
 
 /**
- * Return heap-allocated array of initialised heap-allocated monitors via randr
+ * Create monitor from the given Xinerama screen info struct.
  */
-monitor_t **monitor_find_all(
-    xcb_connection_t *const con,
-    const xcb_window_t root,
-    uint32_t *const len
+monitor_t monitor_init_xinerama(
+    const xcb_xinerama_screen_info_t *info
 );
 
 #ifdef __cplusplus

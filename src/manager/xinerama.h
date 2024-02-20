@@ -15,6 +15,8 @@
 #include <xcb/xcb.h>
 #include <xcb/xinerama.h>
 
+typedef struct monitor_t monitor_t;
+
 /**
  * Initialise the Xinerama extension for multihead support
  */
@@ -27,6 +29,15 @@ void xinerama_init(
  * NULL is returned if there was an error.
  */
 xcb_xinerama_screen_info_t *xinerama_find_screens(
+    xcb_connection_t *const con,
+    uint32_t *const len
+);
+
+/**
+ * Return heap-allocated array of ptrs to heap-allocated awm monitor structs, created by data queried from Xinerama. The amount of monitors is
+ * returned into `len`. Finally, NULL is returned if there was an error.
+ */
+monitor_t **xinerama_query_monitors(
     xcb_connection_t *const con,
     uint32_t *const len
 );

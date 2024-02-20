@@ -16,6 +16,7 @@
 #include <xcb/randr.h>
 
 typedef struct session_t session_t;
+typedef struct monitor_t monitor_t;
 
 /**
  * Initialise the RandR extension for multihead support, and return the RandR base (`first_event` of query_extension_reply)
@@ -34,13 +35,13 @@ void randr_event_handle(
 );
 
 /**
- * Return heap-allocated array of outputs found by RandR - the amount is returned into `len`, and an XCB timestamp is returned into `tstamp`.
+ * Return heap-allocated array of ptrs to heap-allocated awm monitor structs, created by data queried from XRandR. The amount of monitors is returned
+ * into `len`. Finally, NULL is returned if there was an error.
  */
-xcb_randr_output_t *randr_find_outputs(
+monitor_t **randr_query_monitors(
     xcb_connection_t *const con,
     const xcb_window_t root,
-    uint32_t *const len,
-    xcb_timestamp_t *const tstamp
+    uint32_t *const len
 );
 
 #ifdef __cplusplus

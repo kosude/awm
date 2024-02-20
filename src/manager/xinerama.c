@@ -9,6 +9,8 @@
 
 #include "util/logging.h"
 
+#include "manager/monitor.h"
+
 #include <xcb/xinerama.h>
 
 #include <string.h>
@@ -30,7 +32,10 @@ void xinerama_init(xcb_connection_t *const con) {
     free(actr);
 }
 
-xcb_xinerama_screen_info_t *xinerama_find_screens(xcb_connection_t *const con, uint32_t *const len) {
+monitor_t **xinerama_query_monitors(xcb_connection_t *const con, uint32_t *const len) {
+    monitor_t **mons = NULL;
+    uint32_t monn = 0;
+
     xcb_xinerama_screen_info_t *scrs;
     uint32_t scrn;
 
@@ -40,14 +45,33 @@ xcb_xinerama_screen_info_t *xinerama_find_screens(xcb_connection_t *const con, u
     }
 
     scrn = xcb_xinerama_query_screens_screen_info_length(scrrep);
-    scrs = malloc(sizeof(xcb_xinerama_screen_info_t) * scrn);
-    memcpy(scrs, xcb_xinerama_query_screens_screen_info(scrrep), sizeof(xcb_xinerama_screen_info_t) * scrn);
+    scrs = xcb_xinerama_query_screens_screen_info(scrrep);
+
+    for (uint32_t i = 0; i < scrn; i++) {
+        const xcb_xinerama_screen_info_t s = scrs[i];
+
+        monitor_t m = monitor_init_xinerama(&s);
+        monitor_t *mp = malloc(sizeof(monitor_t));
+        if (!mp) {
+            LFATAL("malloc() fault");
+            KILL();
+        }
+        memcpy(mp, &m, sizeof(monitor_t));
+
+        monn++;
+        mons = realloc(mons, sizeof(monitor_t *) * monn);
+        if (!mons) {
+            LFATAL("realloc() fault when Xinerama-querying monitors");
+            KILL();
+        }
+        mons[monn-1] = mp;
+    }
 
     free(scrrep);
 
     if (len) {
-        *len = scrn;
+        *len = monn;
     }
 
-    return scrs;
+    return mons;
 }

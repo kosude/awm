@@ -11,6 +11,7 @@
 #include "util/xstr.h"
 
 #include "manager/session.h"
+#include "manager/monitor.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -97,15 +98,17 @@ out_unhandled:
     return;
 }
 
-xcb_randr_output_t *randr_find_outputs(xcb_connection_t *const con, const xcb_window_t root, uint32_t *const len, xcb_timestamp_t *const tstamp) {
-    xcb_randr_output_t *outputs, *valoutputs; // valoutputs is an array of validated outputs
-    uint32_t outputn, valoutputn = 0;
-    xcb_timestamp_t stamp;
+monitor_t **randr_query_monitors(xcb_connection_t *const con, const xcb_window_t root, uint32_t *const len) {
+    monitor_t **mons = NULL;
+    uint32_t monn = 0;
+
+    xcb_randr_output_t *outputs;
+    uint32_t outputn;
+    xcb_timestamp_t tstamp;
 
     if (has_randr_1_5) {
         // find outputs with RandR >= 1.5
-        LINFO("Querying outputs with RandR 1.5...");
-        outputs = randr_find_outputs_1_5(con, root, &outputn, &stamp);
+        outputs = randr_find_outputs_1_5(con, root, &outputn, &tstamp);
         if (!outputs) {
             // 1.5 function failed, fallback to 1.4
             LWARN("RandR 1.5 query failed, falling back to 1.4.");
@@ -114,34 +117,42 @@ xcb_randr_output_t *randr_find_outputs(xcb_connection_t *const con, const xcb_wi
     } else {
 fallback_1_4:
         // find outputs with RandR <= 1.4
-        LINFO("Querying outputs with RandR <= 1.4...");
-        outputs = randr_find_outputs_1_4(con, root, &outputn, &stamp);
+        outputs = randr_find_outputs_1_4(con, root, &outputn, &tstamp);
     }
 
-    if (tstamp) {
-        *tstamp = stamp;
-    }
-
-    // validate each output, copying usable ones into valoutputs
-    // valoutputs will probably be bigger than necessary, but that's at least more efficient than a bunch of reallocs in the for loop
-    valoutputs = malloc(sizeof(xcb_randr_output_t) * outputn);
-    if (!valoutputs) {
-        free(outputs);
-        LFATAL("malloc() fault");
-        KILL();
-    }
     for (uint32_t i = 0; i < outputn; i++) {
-        if (validate_output(con, outputs[i], stamp)) {
-            valoutputs[valoutputn++] = outputs[i];
+        const xcb_randr_output_t o = outputs[i];
+
+        if (!validate_output(con, o, tstamp)) {
+            continue;
         }
+
+        monitor_t m = monitor_init(con, o, tstamp);
+        monitor_t *mp = malloc(sizeof(monitor_t));
+        if (!mp) {
+            free(outputs);
+            LFATAL("malloc() fault");
+            KILL();
+        }
+        memcpy(mp, &m, sizeof(monitor_t));
+
+        monn++;
+        mons = realloc(mons, sizeof(monitor_t *) * monn);
+        if (!mons) {
+            free(outputs);
+            LFATAL("realloc() fault when RandR-querying monitors");
+            KILL();
+        }
+        mons[monn-1] = mp;
     }
+
     free(outputs);
 
     if (len) {
-        *len = valoutputn;
+        *len = monn;
     }
 
-    return valoutputs;
+    return mons;
 }
 
 static xcb_randr_output_t *randr_find_outputs_1_4(xcb_connection_t *const con, const xcb_window_t root, uint32_t *const len,
@@ -203,6 +214,10 @@ static xcb_randr_output_t *randr_find_outputs_1_5(xcb_connection_t *const con, c
         // concatenate the output array ov onto block at outputs
         outputn += on;
         outputs = realloc(outputs, sizeof(xcb_randr_output_t) * outputn);
+        if (!outputs) {
+            LFATAL("realloc() fault when concat RandR 1.5 output array");
+            KILL();
+        }
         memcpy(outputs + (outputn - on), ov, sizeof(xcb_randr_output_t) * on);
 
         // // get the monitor name

@@ -59,38 +59,26 @@ out2:
     return m;
 }
 
-monitor_t **monitor_find_all(xcb_connection_t *const con, const xcb_window_t root, uint32_t *const len) {
-    monitor_t **monitors;
+monitor_t monitor_init_xinerama(const xcb_xinerama_screen_info_t *info) {
+    monitor_t m;
+    m.output = UINT32_MAX;
 
-    xcb_timestamp_t tstamp;
-
-    uint32_t outputn;
-    xcb_randr_output_t *const outputs = randr_find_outputs(con, root, &outputn, &tstamp);
-
-    // return outputn
-    if (len) {
-        *len = outputn;
-    }
-
-    monitors = malloc(sizeof(monitor_t *) * outputn);
-    if (!monitors) {
-        free(outputs);
-        LFATAL("malloc() fault");
-        KILL();
-    }
-
-    for (uint32_t i = 0; i < outputn; i++) {
-        monitor_t *m = malloc(sizeof(monitor_t));
-        if (!m) {
-            LFATAL("malloc() fault");
-            KILL();
+    m.dims = (rect_t) {
+        .extent = {
+            .width = info->width,
+            .height = info->height
+        },
+        .offset = {
+            .x = info->x_org,
+            .y = info->y_org
         }
-        *m = monitor_init(con, outputs[i], tstamp);
+    };
 
-        monitors[i] = m;
-    }
+    // printing monitor information in debug context
+    LLOG(
+        "New monitor: Xinerama\n"
+        "\tdims = %ux%u+%d+%u",
+        m.dims.extent.width, m.dims.extent.height, m.dims.offset.x, m.dims.offset.y);
 
-    free(outputs);
-
-    return monitors;
+    return m;
 }
