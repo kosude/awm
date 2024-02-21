@@ -18,10 +18,9 @@ xcb_connection_t *con;
 session_t session;
 
 int main(int argc, char **argv) {
-    // get config (which involves interpreting command-line arguments)
+    // command-line and config file parsing
     session_config_t sconfig;
     int argstat;
-
     if ((argstat = get_session_config(argc, argv, &sconfig))) {
         // program should exit (invalid arguments, or specified help/version, etc)
         if (argstat == 2)

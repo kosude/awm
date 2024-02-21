@@ -5,7 +5,7 @@
 ![Lines of code](https://www.aschey.tech/tokei/github.com/kosude/awm)
 
 
-A lightweight X (xcb) window manager for use on Linux systems.
+A highly configurable and lightweight X (xcb) window manager for use on Linux systems.
 
 The aim is to have a basic floating window manager (eventually with compositing support) that behaves in a way somewhat similar to Windows, with the
 difference that it runs on an operating system that doesn't hate you.
@@ -27,3 +27,8 @@ XQuartz session. A `Xephyr` binary is provided by this package.
 
 A convenience script is provided at [`tools/run_xephyr.sh`](tools/run_xephyr.sh). This script runs an instance of Awm, as well as xterm, in a Xephyr
 session. Valgrind is enabled by default here, but it can be disabled with the `--none` argument.
+
+#### Multihead testing
+You can use a command such as `Xephyr :1 +xinerama -screen 800x600+0+0 -screen 800x600+800+0` to test multiple monitor support with Xephyr. An
+important thing to note is that RandR doesn't seem to work properly in such a configuration (even if it is enabled with `+extension RANDR`) - invoke
+Awm with the `-X` parameter to fix this by using Xinerama instead.

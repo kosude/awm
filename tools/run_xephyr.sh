@@ -49,6 +49,7 @@ for arg in "$@" ; do
 done
 
 AWM_EXEC="./build/awm/awm" # relative to repository root directory
+AWM_ARGS=-X
 
 # get available display number
 DISPLAY_NUM=
@@ -81,7 +82,7 @@ sleep 0.4
 
 # run the window manager
 DISPLAY=:$DISPLAY_NUM \
-    runtime $AWM_EXEC \
+    runtime $AWM_EXEC $AWM_ARGS \
     || echo "Non-zero exit code"
 
 # clean up xephyr

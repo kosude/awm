@@ -73,6 +73,7 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
     register_wm_substructure_events(con, root);
 
     // init randr (or xinerama, fallback) and find monitors
+    session.randrbase = 0;
     if (cfg->force_xinerama || !(session.randrbase = randr_init(con, root, cfg->force_randr_1_4))) {
         xinerama_init(con);
     }
@@ -176,8 +177,6 @@ void session_update_monitorset(session_t *const session) {
     xcb_connection_t *const con = session->con;
     const xcb_window_t root = session->root;
 
-    monitorset_t monitorset = session->monitorset;
-
     monitor_t **monitors;
     uint32_t monitorn;
 
@@ -188,7 +187,7 @@ void session_update_monitorset(session_t *const session) {
     }
 
     for (uint32_t i = 0; i < monitorn; i++) {
-        monitorset_push(&monitorset, monitors[i]);
+        monitorset_push(&session->monitorset, monitors[i]);
     }
 
     free(monitors);
