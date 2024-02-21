@@ -15,7 +15,6 @@
 #include "util/logging.h"
 #include "util/xstr.h"
 
-#include <xcb/xcb_aux.h>
 #include <string.h>
 
 /**
