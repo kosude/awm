@@ -17,6 +17,8 @@
 
 #include <xcb/xcb.h>
 
+typedef struct session_config_t session_config_t;
+
 /**
  * A struct representing the window manager session.
  */
@@ -44,7 +46,8 @@ typedef struct session_t {
  */
 session_t session_init(
     xcb_connection_t *const con,
-    const int32_t scrnum
+    const int32_t scrnum,
+    const session_config_t *const cfg
 );
 
 /**

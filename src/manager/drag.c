@@ -146,6 +146,7 @@ static void move_and_wait(xcb_connection_t *const con, session_t *const session,
         case XCB_CONFIGURE_REQUEST:
         case XCB_MAP_REQUEST:
             handler(session, ev);
+            // fallthrough
         case XCB_MOTION_NOTIFY:
             client_move(con, client, innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y);
             break;

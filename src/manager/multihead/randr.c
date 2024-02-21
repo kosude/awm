@@ -37,7 +37,7 @@ static uint8_t validate_output(
     const xcb_timestamp_t tstamp
 );
 
-uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
+uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root, const uint8_t force_1_4) {
     xcb_generic_error_t *err;
 
     uint8_t randrbase;
@@ -50,18 +50,22 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
     }
     randrbase = randr->first_event;
 
-    // check for minimum randr version 1.5
-    // TODO: configuration option to force RandR < 1.4
-    xcb_randr_query_version_reply_t *v = xcb_randr_query_version_reply(con,
-        xcb_randr_query_version(con, XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION), &err);
-    if (err) {
-        LFATAL("Failed to query RandR version: %s", xerrcode_str(err->error_code));
-        free(err);
-        return 0;
+    if (!force_1_4) {
+        // check for minimum randr version 1.5
+        xcb_randr_query_version_reply_t *v = xcb_randr_query_version_reply(con,
+            xcb_randr_query_version(con, XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION), &err);
+        if (err) {
+            LFATAL("Failed to query RandR version (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
+            free(err);
+            return 0;
+        }
+        has_randr_1_5 = (v->major_version >= 1) && (v->minor_version >= 5);
+        LINFO("Found RandR %u.%u %s", v->major_version, v->minor_version, (has_randr_1_5) ? "(>=1.5)" : "<1.5");
+        free(v);
+    } else {
+        has_randr_1_5 = 0;
+        LINFO("Using RandR <=1.4");
     }
-    has_randr_1_5 = (v->major_version >= 1) && (v->minor_version >= 5);
-    LINFO("Found RandR %u.%u %s", v->major_version, v->minor_version, (has_randr_1_5) ? "(>=1.5)" : "<1.5");
-    free(v);
 
     // request to recieve randr events
     xcb_void_cookie_t c = xcb_randr_select_input_checked(
@@ -71,7 +75,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root) {
             XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE |
             XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE));
     if ((err = xcb_request_check(con, c))) {
-        LFATAL("Failed to initialise RandR extension");
+        LFATAL("Failed to initialise RandR extension (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
         free(err);
         return 0;
     }

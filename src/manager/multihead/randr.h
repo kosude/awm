@@ -20,10 +20,12 @@ typedef struct monitor_t monitor_t;
 
 /**
  * Initialise the RandR extension for multihead support, and return the RandR base (`first_event` of query_extension_reply)
+ * If `force_1_4` is not 0, then RandR <=1.4 functions (non-monitor api) will be used even if a newer version is available.
  */
 uint8_t randr_init(
     xcb_connection_t *const con,
-    const xcb_window_t root
+    const xcb_window_t root,
+    const uint8_t force_1_4
 );
 
 /**

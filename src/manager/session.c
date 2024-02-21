@@ -7,6 +7,7 @@
 
 #include "session.h"
 
+#include "init/config.h"
 #include "manager/multihead/monitor.h"
 #include "manager/multihead/randr.h"
 #include "manager/multihead/xinerama.h"
@@ -35,7 +36,7 @@ static void manage_existing_clients(
     session_t *const session
 );
 
-session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
+session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const session_config_t *const cfg) {
     session_t session;
 
     xcb_screen_t *scr;
@@ -61,11 +62,8 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     root = scr->root;
     session.root = root;
 
-    // TODO option to force Xinerama
-    uint8_t force_xinerama = 1;
-
     // prefetch X extensions
-    if (force_xinerama) {
+    if (cfg->force_xinerama) {
         xcb_prefetch_extension_data(con, &xcb_xinerama_id);
     } else {
         xcb_prefetch_extension_data(con, &xcb_randr_id);
@@ -75,7 +73,7 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum) {
     register_wm_substructure_events(con, root);
 
     // init randr (or xinerama, fallback) and find monitors
-    if (force_xinerama || !(session.randrbase = randr_init(con, root))) {
+    if (cfg->force_xinerama || !(session.randrbase = randr_init(con, root, cfg->force_randr_1_4))) {
         xinerama_init(con);
     }
 

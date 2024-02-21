@@ -5,6 +5,7 @@
  *   See the LICENCE file for more information.
  */
 
+#include "init/config.h"
 #include "init/sighandle.h"
 #include "manager/session.h"
 #include "util/logging.h"
@@ -16,7 +17,19 @@ xcb_connection_t *con;
 
 session_t session;
 
-int main(void) {
+int main(int argc, char **argv) {
+    // get config (which involves interpreting command-line arguments)
+    session_config_t sconfig;
+    int argstat;
+
+    if ((argstat = get_session_config(argc, argv, &sconfig))) {
+        // program should exit (invalid arguments, or specified help/version, etc)
+        if (argstat == 2)
+            KILLSUCC();
+        else
+            KILL();
+    }
+
     int scrnum, conerr;
 
     LINFO("awm %d-bit", (int) (8 * sizeof(void *)));
@@ -36,7 +49,7 @@ int main(void) {
     LINFO("Connected to X on screen %d", scrnum);
 
     // initialise window manager session
-    session = session_init(con, scrnum);
+    session = session_init(con, scrnum, &sconfig);
 
     for (;;) {
         session_handle_next_event(&session);

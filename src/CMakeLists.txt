@@ -1,6 +1,7 @@
 set(SRCS
     "data/htable.c"
 
+    "init/config.c"
     "init/main.c"
     "init/sighandle.c"
 

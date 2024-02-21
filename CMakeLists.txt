@@ -23,6 +23,7 @@ if (AWM_DEBUG)
         -Wall -Wextra -Wpedantic -Werror
         -Wno-error=unused-parameter
         -Wno-error=unused-function
+        -Wno-implicit-fallthrough
         -Wmissing-prototypes -Wstrict-prototypes)
 endif()
 
