@@ -118,8 +118,8 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
     // create a framed client for the window
     client_t *const client = malloc(sizeof(client_t));
     if (!client) {
-        LFATAL("malloc() fault");
-        KILL();
+        LERR("malloc() fault");
+        return NULL;
     }
     *client = client_init_framed(con, scr, win);
 
@@ -184,6 +184,11 @@ void session_update_monitorset(session_t *const session) {
         monitors = randr_query_monitors(con, root, &monitorn);
     } else {
         monitors = xinerama_query_monitors(con, &monitorn);
+    }
+
+    if (!monitors) {
+        LERR("Failed to update monitor set");
+        return;
     }
 
     for (uint32_t i = 0; i < monitorn; i++) {

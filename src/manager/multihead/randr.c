@@ -55,7 +55,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root, const u
         xcb_randr_query_version_reply_t *v = xcb_randr_query_version_reply(con,
             xcb_randr_query_version(con, XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION), &err);
         if (err) {
-            LFATAL("Failed to query RandR version (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
+            LERR("Failed to query RandR version (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
             free(err);
             return 0;
         }
@@ -75,7 +75,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root, const u
             XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE |
             XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE));
     if ((err = xcb_request_check(con, c))) {
-        LFATAL("Failed to initialise RandR extension (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
+        LERR("Failed to initialise RandR extension (%s); falling back to Xinerama.", xerrcode_str(err->error_code));
         free(err);
         return 0;
     }
@@ -134,8 +134,8 @@ fallback_1_4:
         monitor_t *mp = malloc(sizeof(monitor_t));
         if (!mp) {
             free(outputs);
-            LFATAL("malloc() fault");
-            KILL();
+            LERR("malloc() fault");
+            return NULL;
         }
         memcpy(mp, &m, sizeof(monitor_t));
 
@@ -143,8 +143,8 @@ fallback_1_4:
         mons = realloc(mons, sizeof(monitor_t *) * monn);
         if (!mons) {
             free(outputs);
-            LFATAL("realloc() fault when RandR-querying monitors");
-            KILL();
+            LERR("realloc() fault when RandR-querying monitors");
+            return NULL;
         }
         mons[monn-1] = mp;
     }
@@ -195,8 +195,8 @@ static xcb_randr_output_t *randr_find_outputs_1_5(xcb_connection_t *const con, c
 
     xcb_randr_get_monitors_reply_t *mons = xcb_randr_get_monitors_reply(con, xcb_randr_get_monitors(con, root, 1), &err);
     if (err) {
-        LERR("Failed to get RandR monitors: %s", xerrcode_str(err->error_code));
         free(err);
+        LERR("Failed to get RandR monitors: %s", xerrcode_str(err->error_code));
         return NULL;
     }
 
@@ -218,8 +218,9 @@ static xcb_randr_output_t *randr_find_outputs_1_5(xcb_connection_t *const con, c
         outputn += on;
         outputs = realloc(outputs, sizeof(xcb_randr_output_t) * outputn);
         if (!outputs) {
-            LFATAL("realloc() fault when concat RandR 1.5 output array");
-            KILL();
+            free(mons);
+            LERR("realloc() fault when concat RandR 1.5 output array");
+            return NULL;
         }
         memcpy(outputs + (outputn - on), ov, sizeof(xcb_randr_output_t) * on);
 

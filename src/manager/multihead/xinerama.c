@@ -52,16 +52,19 @@ monitor_t **xinerama_query_monitors(xcb_connection_t *const con, uint32_t *const
         monitor_t m = monitor_init_xinerama(&s);
         monitor_t *mp = malloc(sizeof(monitor_t));
         if (!mp) {
-            LFATAL("malloc() fault");
-            KILL();
+            free(scrrep);
+            LERR("malloc() fault");
+            return NULL;
         }
         memcpy(mp, &m, sizeof(monitor_t));
 
         monn++;
         mons = realloc(mons, sizeof(monitor_t *) * monn);
         if (!mons) {
-            LFATAL("realloc() fault when Xinerama-querying monitors");
-            KILL();
+            free(scrrep);
+            free(mp);
+            LERR("realloc() fault when Xinerama-querying monitors");
+            return NULL;
         }
         mons[monn-1] = mp;
     }
