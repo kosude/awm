@@ -49,7 +49,7 @@ for arg in "$@" ; do
 done
 
 AWM_EXEC="./build/awm/awm" # relative to repository root directory
-AWM_ARGS=-X
+AWM_ARGS=
 
 # get available display number
 DISPLAY_NUM=

@@ -197,7 +197,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
         updsize = innersize;
         updpos = innerpos;
 
-        uint8_t move = 0;
+        uint8_t move = 0; //bit-field -- 01: move right; 10: move down.
 
         switch (ev->response_type) {
         case XCB_CONFIGURE_REQUEST:
@@ -207,7 +207,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             if (side & RESIZE_LEFT) {
                 updsize.width -= ptrdelta.x;
                 updpos.x += ptrdelta.x;
-                move = 1;
+                move |= 0x1;
             }
             if (side & RESIZE_RIGHT) {
                 updsize.width += ptrdelta.x;
@@ -215,7 +215,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             if (side & RESIZE_TOP) {
                 updsize.height -= ptrdelta.y;
                 updpos.y += ptrdelta.y;
-                move = 1;
+                move |= 0x2;
             }
             if (side & RESIZE_BOTTOM) {
                 updsize.height += ptrdelta.y;
@@ -224,16 +224,11 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             // dimc is a bit mask indicating if the width and height of the client has changed respectively.
             const uint8_t dimc = client_resize(con, client, updsize.width, updsize.height);
 
-            // break if we aren't moving the window (i.e. we aren't resizing from the top or left sides)
-            if (!move) {
-                break;
-            }
-
             // move the window (clamped to maxpos)
-            if ((dimc & 0x1) == 0) {
+            if ((move & 0x1) != 0 && (dimc & 0x1) == 0) {
                 updpos.x = maxpos.x;
             }
-            if ((dimc & 0x2) == 0) {
+            if ((move & 0x2) != 0 && (dimc & 0x2) == 0) {
                 updpos.y = maxpos.y;
             }
             client_move(con, client, updpos.x, updpos.y);
