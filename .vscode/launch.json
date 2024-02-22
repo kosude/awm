@@ -6,8 +6,8 @@
             "name": "(lldb) Launch",
             "program": "${workspaceFolder}/build/awm/awm",
             "args": [
-                "-c",
-                "test"
+                "-p",
+                "test_config"
             ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build project",

@@ -19,7 +19,8 @@ Currently, there is one config file expected (although not required): `awm.conf`
  - `~/.awm/conf/`
  - `/etc/awm/conf/`
 
-Otherwise, you can specify a base configuration folder with the `-c` argument. Run `awm -h` for more information.
+Otherwise, you can specify a base configuration folder (which must contain a subdirectory named `conf`) with the `-p` argument. Run `awm -h` for more
+information.
 
 
 ## Development

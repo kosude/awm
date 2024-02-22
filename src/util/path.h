@@ -26,6 +26,14 @@ uint8_t path_exists(
  */
 char *path_get_home(void);
 
+/**
+ * Remove the trailing slash from the given string, if there is one.
+ * Note; this doesn't actually resize the string, it just replaces the trailing char with a nullterm.
+ */
+void path_rem_trailing_slash(
+    char *const p
+);
+
 #ifdef __cplusplus
     }
 #endif

@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 uint8_t path_exists(const char *const p) {
@@ -25,4 +26,11 @@ char *path_get_home(void) {
         h = getpwuid(getuid())->pw_dir;
     }
     return h;
+}
+
+void path_rem_trailing_slash(char *const p) {
+    uint32_t i = strlen(p) - 1;
+    if (p[i] == '/') {
+        p[i] = 0;
+    }
 }

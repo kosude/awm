@@ -32,11 +32,12 @@ uint8_t get_session_config(const int argc, char **const argv, session_config_t *
     char *cfgpath;
     int opt;
 
-    while ((opt = getopt(argc, argv, "c:RXhV")) != -1) {
+    while ((opt = getopt(argc, argv, "p:RXhV")) != -1) {
         switch (opt) {
-            case 'c':
-                free(cfgpathoverride); // in case of multiple -c flags
+            case 'p':
+                free(cfgpathoverride); // in case of multiple -p flags
                 cfgpathoverride = strdup(optarg);
+                path_rem_trailing_slash(cfgpathoverride);
                 break;
             case 'R':
                 session_config.force_randr_1_4 = 1;
@@ -82,11 +83,11 @@ abrt:
 }
 
 static void usage(char **const argv) {
-    fprintf(stderr, "Usage: %s [-h] [-V] [-R | -X] [-c path]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [-h] [-V] [-R | -X] [-p path]\n", argv[0]);
 
     // TODO -- the following should be removed and replaced with a man page or something
     fprintf(stderr, "\n");
-    fprintf(stderr, "    -c <path>  Search the specified config directory\n");
+    fprintf(stderr, "    -p <path>  Search the specified base config path\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "    -R         Force older RandR <=1.4 functions if applicable\n");
     fprintf(stderr, "    -X         Force very old Xinerama API instead of RandR\n");
