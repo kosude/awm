@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     // connect to X server
     con = xcb_connect(NULL, &scrnum);
     if ((conerr = xcb_connection_has_error(con))) {
-        LFATAL("Failed to make X connection: error %d (%s)", conerr, xerrcode_str(conerr));
+        LFATAL("Failed to make X connection: (%s)%s", xerrcode_str(conerr), (conerr != 1) ? "" : " - Does the display on $DISPLAY exist?");
         KILL();
     }
     LINFO("Connected to X on screen %d", scrnum);
