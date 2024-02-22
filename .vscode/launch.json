@@ -5,7 +5,10 @@
             "request": "launch",
             "name": "(lldb) Launch",
             "program": "${workspaceFolder}/build/awm/awm",
-            "args": [],
+            "args": [
+                "-c",
+                "test"
+            ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build project",
             "env": {

@@ -15,6 +15,7 @@ set(SRCS
     "manager/events.c"
     "manager/session.c"
 
+    "util/path.c"
     "util/xstr.c"
 )
 set(TARGET_NAME "awm")

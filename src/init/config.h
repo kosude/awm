@@ -25,8 +25,7 @@ typedef struct session_config_t {
 } session_config_t;
 
 /**
- * Get user session configuration, returned into cfg.
- * Command-line arguments have the highest priority; then config file(s); then defaults.
+ * Get user session configuration, returned into cfg. These options are retrieved from argv and user config file(s).
  * If 1 or 2 is returned, then the program should be killed, with a fail or success status respectively.
  */
 uint8_t get_session_config(

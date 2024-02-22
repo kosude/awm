@@ -11,6 +11,17 @@ The aim is to have a basic floating window manager (eventually with compositing 
 difference that it runs on an operating system that doesn't hate you.
 
 
+## Configuration
+
+Currently, there is one config file expected (although not required): `awm.conf`. It must have that filename, and be located in one of the following
+(from highest priority to lowest):
+ - `~/.local/config/awm/conf/`
+ - `~/.awm/conf/`
+ - `/etc/awm/conf/`
+
+Otherwise, you can specify a base configuration folder with the `-c` argument. Run `awm -h` for more information.
+
+
 ## Development
 
 Awm can be compiled to either 32-bit or 64-bit using the appropriate CMake toolchain (in [`cmake/tc/`](cmake/tc/)).
