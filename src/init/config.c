@@ -7,30 +7,39 @@
 
 #include "config.h"
 
+#include "util/inih.h"
 #include "util/logging.h"
 #include "util/path.h"
 #include "version.h"
 
+#include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>
 
-static void usage(char **const argv);
+static void usage(char *const argv0);
 static void version(void);
 
 // Look for default user + system config paths, or return `override` if not NULL.
 static char *get_config_path(char *const override);
-static uint8_t load_config_file(char *const path, session_config_t *const conf);
+static uint8_t load_config_file(char *const path, session_config_t *conf);
+static int inih_handler(void *user, const char *sect, const char *name, const char *val);
 
 static session_config_t session_config = {
     .force_randr_1_4 = 0,
-    .force_xinerama = 0
+    .force_xinerama = 0,
+
+    .drag_n_drop = {
+        .meta_dragging = 1
+    }
 };
 
-uint8_t get_session_config(const int argc, char **const argv, session_config_t *const cfg) {
+uint8_t get_session_config(const int argc, char **const argv, session_config_t *cfg) {
     char *cfgpathoverride = NULL;
     char *cfgpath;
     int opt;
+
+    char *const argv0 = argv[0];
 
     while ((opt = getopt(argc, argv, "p:RXhV")) != -1) {
         switch (opt) {
@@ -45,13 +54,15 @@ uint8_t get_session_config(const int argc, char **const argv, session_config_t *
             case 'X':
                 session_config.force_xinerama = 1;
                 break;
+            case 'h':
+                usage(argv0);
+                goto abrtsucc;
             case 'V':
                 version();
                 goto abrtsucc;
             default:
-                usage(argv);
-                if (opt == 'h') goto abrtsucc;
-                else            goto abrt;
+                fprintf(stderr, "%s: use the -h option for usage information\n", argv0);
+                goto abrt;
         }
     }
 
@@ -66,7 +77,6 @@ uint8_t get_session_config(const int argc, char **const argv, session_config_t *
         if (!asprintf(&p, "%s/awm.conf", cfgpath)) {
             LERR("asprintf() fault");
         } else {
-            LINFO("Reading configuration from '%s'...", p);
             load_config_file(p, &session_config);
         }
         free(p);
@@ -82,10 +92,10 @@ abrt:
     return 1;
 }
 
-static void usage(char **const argv) {
-    fprintf(stderr, "Usage: %s [-h] [-V] [-R | -X] [-p path]\n", argv[0]);
+static void usage(char *const argv0) {
+    fprintf(stderr, "Usage: %s [-h] [-V] [-R | -X] [-p path]\n", argv0);
 
-    // TODO -- the following should be removed and replaced with a man page or something
+    // the following should be removed and replaced with a man page or something
     fprintf(stderr, "\n");
     fprintf(stderr, "    -p <path>  Search the specified base config path\n");
     fprintf(stderr, "\n");
@@ -162,8 +172,32 @@ checkuserdirs:
     return NULL;
 }
 
-static uint8_t load_config_file(char *const path, session_config_t *const conf) {
-    // TODO: config loading and parsing
+static uint8_t load_config_file(char *const path, session_config_t *conf) {
+    if (ini_parse(path, inih_handler, conf) < 0) {
+        LERR("Failed to parse '%s'", path);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int inih_handler(void *user, const char *sect, const char *name, const char *val) {
+    session_config_t *conf = (session_config_t *) user;
+    char *checksect;
+
+#   define STRTOBOOL(s, def) (strcasecmp(s, "true") == 0) ? 1 : ((strcasecmp(s, "false") == 0) ? 0 : def)
+#   define READSECT(s, c) checksect = s; c
+#   define READNAME(n) strcmp(checksect, sect) == 0 && strcmp(n, name) == 0
+
+    READSECT("DRAG_N_DROP",
+        if (READNAME("meta_dragging")) {
+            conf->drag_n_drop.meta_dragging = STRTOBOOL(val, 1);
+        }
+    );
+
+#   undef READNAME
+#   undef READSECT
+#   undef STRTOBOOL
 
     return 1;
 }

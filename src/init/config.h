@@ -22,6 +22,12 @@ typedef struct session_config_t {
     uint8_t force_xinerama;
     /** Force RandR versions 1.4 and below to be used regardless of whether RandR 1.5 is available or not. */
     uint8_t force_randr_1_4;
+
+    struct {
+        /** Enable the meta-dragging feature */
+        // TODO: this currently has no effect!
+        uint8_t meta_dragging;
+    } drag_n_drop;
 } session_config_t;
 
 /**
@@ -31,7 +37,7 @@ typedef struct session_config_t {
 uint8_t get_session_config(
     const int argc,
     char **const argv,
-    session_config_t *const cfg
+    session_config_t *cfg
 );
 
 #ifdef __cplusplus
