@@ -11,6 +11,8 @@
 #include "util/xstr.h"
 
 #include <string.h>
+#include <xcb/xcb_icccm.h>
+#include <xcb/xcb_ewmh.h>
 
 /**
  * Create a frame for the given client.
@@ -125,8 +127,10 @@ uint8_t client_move(xcb_connection_t *const con, client_t *const client, const u
     const xcb_window_t frame = client->frame;
     clientprops_t *const props = &(client->properties);
 
+#   define MIN(a, b) ((a) < (b) ? (a) : (b))
+
     // coordinates for constraints
-    const int32_t minx = 0 - (client->properties.framerect.extent.width - 30); // keep at least 30 pixels of the client on the screen
+    const int32_t minx = MIN(0, 0 - (int) (client->properties.framerect.extent.width - 30)); // keep at least 30 pixels of the client on the screen
     const int32_t miny = 0;
 
     // get frame position
@@ -287,6 +291,9 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
 static clientprops_t client_get_all_properties(xcb_connection_t *const con, const xcb_window_t win) {
     clientprops_t props;
 
+    xcb_generic_error_t *err;
+    xcb_size_hints_t hints;
+
     // get window geometry
     xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
 
@@ -295,15 +302,22 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
     props.innermargin.bottom = 4;
     props.innermargin.left = props.innermargin.right = 4; // make sure left and right are equal
 
-    props.framerect.extent.width = geom->width + props.innermargin.left + props.innermargin.right;
-    props.framerect.extent.height = geom->height + props.innermargin.top + props.innermargin.bottom;
+    props.framerect.extent.width =  geom->width  + props.innermargin.left + props.innermargin.right;
+    props.framerect.extent.height = geom->height + props.innermargin.top  + props.innermargin.bottom;
     props.framerect.offset.x = geom->x;
     props.framerect.offset.y = geom->y;
 
-    // TODO: respect application hints for minimum dimensions
-    // currently clamped to 20 + margins.
-    props.mindims.width = 20 + props.innermargin.left + props.innermargin.right;
-    props.mindims.height = 20 + props.innermargin.top + props.innermargin.bottom;
+    // get WM_NORMAL_HINTS
+    if (xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints(con, win), &hints, &err)) {
+        props.mindims.width =   hints.min_width  + props.innermargin.left + props.innermargin.right;
+        props.mindims.height =  hints.min_height + props.innermargin.top  + props.innermargin.bottom;
+    } else {
+        LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
+
+        // default minimum inner window size to 20x20
+        props.mindims.width =   20 + props.innermargin.left + props.innermargin.right;
+        props.mindims.height =  20 + props.innermargin.top  + props.innermargin.bottom;
+    }
 
     free(geom);
 
