@@ -28,6 +28,8 @@ typedef struct clientprops_t {
 
     /** Minimum frame size. This is hinted by applications and clamped to a standard minimum. */
     extent_t mindims;
+    /** Maximum frame size. This is hinted by applications, or defaults to UINT32_MAX. */
+    extent_t maxdims;
 } clientprops_t;
 
 /**
@@ -90,7 +92,8 @@ uint8_t client_move(
 
 /**
  * Resize the client to the given dimensions, assuming those are of the inner window. Returns 0 if no change occurred.
- * The return value is guaranteed to be a bit-mask. 0b01 -> width changed; 0b10 -> height changed.
+ * The return value is guaranteed to be a bit-mask. 0b0001 -> width changed; 0b0010 -> height changed. If these bits are set, and if 0b0100 or 0b1000
+ * are set, then the max dims for width or height respectively have been reached. Otherwise, minimum dims have been reached.
  */
 uint8_t client_resize(
     xcb_connection_t *const con,

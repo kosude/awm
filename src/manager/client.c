@@ -165,24 +165,44 @@ uint8_t client_resize(xcb_connection_t *const con, client_t *const client, uint3
     const xcb_window_t frame = client->frame;
     clientprops_t *const props = &(client->properties);
 
+    // width changed and height changed booleans
+    uint8_t wc = 0, hc = 0;
+
     // dimensions for constraints
     const uint32_t minfwid = props->mindims.width;
     const uint32_t minfhei = props->mindims.height;
+    const uint32_t maxfwid = props->maxdims.width;
+    const uint32_t maxfhei = props->maxdims.height;
+
     const uint32_t minwid = minfwid - (props->innermargin.left + props->innermargin.right);
     const uint32_t minhei = minfhei - (props->innermargin.top + props->innermargin.bottom);
+    const uint32_t maxwid = maxfwid - (props->innermargin.left + props->innermargin.right);
+    const uint32_t maxhei = maxfhei - (props->innermargin.top + props->innermargin.bottom);
 
     // get frame size
     uint32_t fwidth = width + props->innermargin.left + props->innermargin.right;
     uint32_t fheight = height + props->innermargin.top + props->innermargin.bottom;
 
-    // constrain
+    // constrain width
     if (fwidth < minfwid || (int) fwidth < 0) {
         fwidth = minfwid;
         width = minwid;
+    } else if (fwidth > maxfwid) {
+        fwidth = maxfwid;
+        width = maxwid;
+    } else {
+        wc = 1;
     }
+
+    // constrain height
     if (fheight < minfhei || (int) fheight < 0) {
         fheight = minfhei;
         height = minhei;
+    } else if (fheight > maxfhei) {
+        fheight = maxfhei;
+        height = maxhei;
+    } else {
+        hc = 1;
     }
 
     props->framerect.extent = (extent_t) {
@@ -204,9 +224,9 @@ uint8_t client_resize(xcb_connection_t *const con, client_t *const client, uint3
         });
     xcb_flush(con);
 
-    const uint8_t wc = (fwidth != minfwid);
-    const uint8_t hc = (fheight != minfhei);
-    return wc | (hc << 1);
+    const uint8_t hitmaxwid = (fwidth == maxfwid);
+    const uint8_t hitmaxhei = (fheight == maxfhei);
+    return wc | (hc << 1) | (hitmaxwid << 2) | (hitmaxhei << 3);
 }
 
 static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *const scr, client_t *const client) {
@@ -309,14 +329,27 @@ static clientprops_t client_get_all_properties(xcb_connection_t *const con, cons
 
     // get WM_NORMAL_HINTS
     if (xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints(con, win), &hints, &err)) {
-        props.mindims.width =   hints.min_width  + props.innermargin.left + props.innermargin.right;
-        props.mindims.height =  hints.min_height + props.innermargin.top  + props.innermargin.bottom;
+        props.mindims.width = hints.min_width + props.innermargin.left + props.innermargin.right;
+        props.mindims.height = hints.min_height + props.innermargin.top + props.innermargin.bottom;
+
+        if (hints.max_width > 0) {
+            props.maxdims.width = hints.max_width  + props.innermargin.left + props.innermargin.right;
+        } else {
+            props.maxdims.width = UINT32_MAX;
+        }
+        if (hints.max_height > 0) {
+            props.maxdims.height = hints.max_height + props.innermargin.top + props.innermargin.bottom;
+        } else {
+            props.maxdims.height = UINT32_MAX;
+        }
     } else {
         LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
 
-        // default minimum inner window size to 20x20
-        props.mindims.width =   20 + props.innermargin.left + props.innermargin.right;
-        props.mindims.height =  20 + props.innermargin.top  + props.innermargin.bottom;
+        props.mindims.width = 20 + props.innermargin.left + props.innermargin.right;
+        props.mindims.height = 20 + props.innermargin.top + props.innermargin.bottom;
+
+        props.maxdims.width = UINT32_MAX;
+        props.maxdims.height = UINT32_MAX;
     }
 
     free(geom);
