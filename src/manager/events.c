@@ -79,6 +79,7 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     client_t *client;
 
     uint8_t is_frame = 1;
+    uint8_t drag;
 
     // attempt to get window client
     client = htable_u32_get(clientset.byframe_ht, win, NULL);
@@ -94,7 +95,9 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     client_focus(con, client);
     client_raise(con, client);
 
-    if (ev->detail == XCB_BUTTON_INDEX_1 && (is_frame || ev->state & XCB_MOD_MASK_4)) {
+    // init drag if clicking on frame, or if meta dragging is enabled and being done
+    drag = is_frame || (session->cfg.drag_n_drop.meta_dragging && (ev->state & XCB_MOD_MASK_4));
+    if (drag && ev->detail == XCB_BUTTON_INDEX_1) { // only drag-n-drop when holding LMB
         drag_start_and_wait(session, client, event_handle);
     }
 

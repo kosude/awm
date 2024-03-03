@@ -25,7 +25,6 @@ typedef struct session_config_t {
 
     struct {
         /** Enable the meta-dragging feature */
-        // TODO: this currently has no effect!
         uint8_t meta_dragging;
     } drag_n_drop;
 } session_config_t;

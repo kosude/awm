@@ -42,6 +42,9 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
     xcb_screen_t *scr;
     xcb_window_t root;
 
+    // copy config into session struct
+    session.cfg = *cfg;
+
     // store connection handle
     session.con = con;
 
@@ -63,7 +66,7 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
     session.root = root;
 
     // prefetch X extensions
-    if (cfg->force_xinerama) {
+    if (session.cfg.force_xinerama) {
         xcb_prefetch_extension_data(con, &xcb_xinerama_id);
     } else {
         xcb_prefetch_extension_data(con, &xcb_randr_id);
@@ -74,7 +77,7 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
 
     // init randr (or xinerama, fallback) and find monitors
     session.randrbase = 0;
-    if (cfg->force_xinerama || !(session.randrbase = randr_init(con, root, cfg->force_randr_1_4))) {
+    if (session.cfg.force_xinerama || !(session.randrbase = randr_init(con, root, session.cfg.force_randr_1_4))) {
         xinerama_init(con);
     }
 

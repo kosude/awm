@@ -12,6 +12,7 @@
     extern "C" {
 #endif
 
+#include "init/config.h"
 #include "manager/multihead/monitorset.h"
 #include "manager/clientset.h"
 
@@ -29,6 +30,9 @@ typedef struct session_t {
     xcb_screen_t *scr;
     /** The root X window. */
     xcb_window_t root;
+
+    /** Session configuration */
+    session_config_t cfg;
 
     /** Set of client references. */
     clientset_t clientset;
