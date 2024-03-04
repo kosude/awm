@@ -10,18 +10,17 @@
 #include "client.h"
 #include "util/logging.h"
 
+#include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 
 clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window_t win) {
     clientprops_t props;
 
-    xcb_generic_error_t *err;
-    xcb_size_hints_t hints;
+    xcb_get_property_cookie_t c_normalhints;
 
     // get window geometry
     xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
 
-    // TODO: stop hardcoding frame margin
     props.innermargin.top = 28;
     props.innermargin.bottom = 4;
     props.innermargin.left = props.innermargin.right = 4; // make sure left and right are equal
@@ -31,27 +30,61 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
     props.rect.offset.x = geom->x;
     props.rect.offset.y = geom->y;
 
-    // get WM_NORMAL_HINTS
-    if (xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints(con, win), &hints, &err)) {
-        props.minsize.width = hints.min_width;
-        props.minsize.height = hints.min_height;
+    props.minsize.width = props.minsize.height = 20;
+    props.maxsize.width = props.maxsize.height = UINT32_MAX;
 
-        // BUG related to BUG quote in events.c. Remove these diagnostics!
-        LLOG("MIN: %dx%d", hints.min_width, hints.min_height);
-        LLOG("MAX: %dx%d", hints.max_width, hints.max_height);
+    // TODO use this for other atomic properties.
+// #   define GETPROP(atom, llen) xcb_get_property(con, 0, win, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, llen)
 
-        props.maxsize.width =  (hints.max_width > 0) ?  (uint32_t)hints.max_width  : UINT32_MAX;
-        props.maxsize.height = (hints.max_height > 0) ? (uint32_t)hints.max_height : UINT32_MAX;
-    } else {
-        LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
+    c_normalhints = xcb_icccm_get_wm_normal_hints(con, win);
 
-        props.minsize = (extent_t){ 20, 20 };
-        props.maxsize = (extent_t){ UINT32_MAX, UINT32_MAX };
-    }
+// #   undef GETPROP
+
+    // use a temporary pseudo-client to pass to clientprops_update_* functions below
+    client_t c = (client_t){
+        .inner = win,
+        .properties = props
+    };
+
+    clientprops_update_normal_hints(con, &c, xcb_get_property_reply(con, c_normalhints, NULL));
+
+    // copy temporary c.properties to the actual client properties struct
+    props = c.properties;
 
     free(geom);
-
     return props;
+}
+
+void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *const client, xcb_get_property_reply_t *reply) {
+    const xcb_window_t win = client->inner;
+    clientprops_t *const props = &client->properties;
+
+    uint8_t ok;
+
+    xcb_size_hints_t hints;
+
+    // attempt to get size hints (if the given reply doesn't contain them already, query for them again)
+    if (reply) {
+        ok = xcb_icccm_get_wm_size_hints_from_reply(&hints, reply);
+        free(reply);
+    } else {
+        ok = xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints_unchecked(con, win), &hints, NULL);
+    }
+    if (!ok) {
+        LERR("Failed to get WM_NORMAL_HINTS");
+        return;
+    }
+
+    // minimum window size
+    if (hints.flags & XCB_ICCCM_SIZE_HINT_P_MIN_SIZE) {
+        props->minsize.width  = hints.min_width;
+        props->minsize.height = hints.min_height;
+    }
+    // maximum window size
+    if (hints.flags & XCB_ICCCM_SIZE_HINT_P_MAX_SIZE) {
+        props->maxsize.width  = (hints.max_width > 0)  ? (uint32_t)hints.max_width  : UINT32_MAX;
+        props->maxsize.height = (hints.max_height > 0) ? (uint32_t)hints.max_height : UINT32_MAX;
+    }
 }
 
 void clientprops_set_raised(xcb_connection_t *const con, client_t *const client) {

@@ -43,6 +43,16 @@ clientprops_t clientprops_init_all(
 );
 
 /**
+ * Update client properties struct based on WM_NORMAL_HINTS properties.
+ * Note that the heap-allocated `reply` is guaranteed to be freed in this function.
+ */
+void clientprops_update_normal_hints(
+    xcb_connection_t *const con,
+    client_t *const client,
+    xcb_get_property_reply_t *reply
+);
+
+/**
  * Raise the specified client to the top of the stack.
  */
 void clientprops_set_raised(

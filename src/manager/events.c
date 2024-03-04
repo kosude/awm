@@ -45,6 +45,36 @@ static void handle_configure_request(
     xcb_configure_request_event_t *const ev
 );
 
+/**
+ * Handle an event of type XCB_PROPERTY_NOTIFY.
+ */
+static void handle_property_notify(
+    session_t *const session,
+    xcb_property_notify_event_t *const ev
+);
+/** Respond to WM_NORMAL_HINTS */
+static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
+
+/** Definition for a function to handle a notification on a particular window property. */
+typedef void (*propertynotify_handler_func_t)(xcb_connection_t *const, client_t *, xcb_get_property_reply_t *);
+/**
+ * A structure to hold a PropertyNotify event handler function and related data.
+ */
+struct propertynotify_handler_t {
+    xcb_atom_t atom;
+    uint32_t llen; // corresponds to long_len field when getting properties via xcb_get_property
+    propertynotify_handler_func_t func;
+};
+/**
+ * A static array of PropertyNotify atom handlers.
+ */
+static struct propertynotify_handler_t propertynotify_handlers[] = {
+    // note -- atom fields are populated after atoms are retrieved from the X server
+    // FIXME: handlers aren't currently called because atoms aren't being retrieved yet.
+
+    { 0, UINT32_MAX, propertynotify_normal_hints }
+};
+
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     const uint8_t t = ev->response_type;
 
@@ -62,8 +92,7 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
             handle_configure_request(session, (xcb_configure_request_event_t *)ev);
             goto out;
         case XCB_PROPERTY_NOTIFY:
-            // BUG fix WM_NORMAL_HINTS properties (and others) not being updated when changed
-            //     FOR EXAMPLE: in GLFW programs, setting size limits does not apply if done whilst awm is running.
+            handle_property_notify(session, (xcb_property_notify_event_t *)ev);
             goto out;
         default:
             goto out_unhandled;
@@ -208,4 +237,55 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
     // update geometry
     clientprops_set_pos(con, client, newpos);
     clientprops_set_size(con, client, newsize);
+}
+
+static void handle_property_notify(session_t *const session, xcb_property_notify_event_t *const ev) {
+    const xcb_window_t win = ev->window;
+    const xcb_atom_t atom = ev->atom;
+    const uint8_t state = ev->state;
+
+    xcb_connection_t *const con = session->con;
+    const clientset_t clientset = session->clientset;
+
+    const struct propertynotify_handler_t *handler = NULL;
+    const uint32_t handlern = sizeof(propertynotify_handlers) / sizeof(struct propertynotify_handler_t);
+
+    xcb_get_property_reply_t *prop;
+    xcb_generic_error_t *err;
+
+    // get appropriate handler for the notified atom
+    for (uint32_t i = 0; i < handlern; i++) {
+        if (propertynotify_handlers[i].atom == atom) {
+            handler = &propertynotify_handlers[i];
+            break;
+        }
+    }
+    if (!handler) {
+        LERR("Missing atomic property handler for atom %d when responding to PropertyNotify event", atom);
+        return;
+    }
+
+    // we are not notified of property changes on frames, so we assume win is an inner window
+    client_t *client = htable_u32_get(clientset.byinner_ht, win, NULL);
+    if (!client) {
+        LWARN("Recieved property change of atom %d on unmanaged window", atom);
+        return;
+    }
+
+    // get property
+    if (state != XCB_PROPERTY_DELETE) {
+        prop = xcb_get_property_reply(con, xcb_get_property(con, 0, win, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, handler->llen), &err);
+        if (err) {
+            LERR("Failed to get property of atom %d: %s", atom, xerrcode_str(err->error_code));
+            free(err);
+            return;
+        }
+    }
+
+    handler->func(con, client, prop);
+    free(prop);
+}
+
+static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
+    clientprops_update_normal_hints(con, client, prop);
 }

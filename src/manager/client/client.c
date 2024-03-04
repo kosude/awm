@@ -24,7 +24,7 @@ static xcb_window_t frame_create(
 /**
  * Register/grab buttons for click events (e.g. raise+focus on click) as well as events on the frame of the given client if applicable
  */
-static void client_register_events(
+static void register_client_events(
     xcb_connection_t *const con,
     client_t *const client
 );
@@ -34,11 +34,10 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
 
     client_t client;
 
+    client.inner = inner;
     client.properties = clientprops_init_all(con, inner);
 
-    client.inner = inner;
     client.frame = frame_create(con, scr, &client);
-
     if (client.frame == (xcb_window_t)-1) {
         // error
         goto out;
@@ -77,7 +76,7 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
     LLOG("New client: inner window 0x%08x reparented under 0x%08x (framed)", inner, frame);
 
     // register event masks on client
-    client_register_events(con, &client);
+    register_client_events(con, &client);
 
 out:
     return client;
@@ -160,7 +159,7 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     return frame;
 }
 
-static void client_register_events(xcb_connection_t *const con, client_t *const client) {
+static void register_client_events(xcb_connection_t *const con, client_t *const client) {
     xcb_generic_error_t *err;
     xcb_void_cookie_t vcookies[5];
 
