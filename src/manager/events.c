@@ -7,7 +7,7 @@
 
 #include "events.h"
 
-#include "manager/client.h"
+#include "manager/client/client.h"
 #include "manager/drag.h"
 #include "manager/session.h"
 #include "util/logging.h"
@@ -61,6 +61,11 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
         case XCB_CONFIGURE_REQUEST:
             handle_configure_request(session, (xcb_configure_request_event_t *) ev);
             goto out;
+        case XCB_PROPERTY_NOTIFY:
+            // BUG (last left off here): fix WM_NORMAL_HINTS properties (and others) not being updated when changed
+            //          FOR EXAMPLE: in GLFW programs, setting size limits does not apply if done whilst awm is running.
+            LLOG("PROPERTY NOTIFY");
+            goto out;
         default:
             goto out_unhandled;
     }
@@ -92,8 +97,8 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
         return;
     }
 
-    client_focus(con, client);
-    client_raise(con, client);
+    clientprops_set_focused(con, client);
+    clientprops_set_raised(con, client);
 
     // init drag if clicking on frame, or if meta dragging is enabled and being done
     drag = is_frame || (session->cfg.drag_n_drop.meta_dragging && (ev->state & XCB_MOD_MASK_4));
@@ -155,8 +160,8 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
 
     // focus and raise new clients
     // TODO: check if this needs to depend on a window hint, some windows might want to not open on top?
-    client_focus(con, client);
-    client_raise(con, client);
+    clientprops_set_focused(con, client);
+    clientprops_set_raised(con, client);
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {
@@ -166,6 +171,9 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
     xcb_connection_t *const con = session->con;
     const clientset_t clientset = session->clientset;
     client_t *client;
+
+    offset_t newpos = { ev->x, ev->y };
+    extent_t newsize = { ev->width, ev->height };
 
     // attempt to get client by window handle; if NULL, we assume this window isn't managed and therefore (in practice) not yet mapped
     if (!(client = htable_u32_get(clientset.byinner_ht, win, NULL))) {
@@ -198,6 +206,7 @@ static void handle_configure_request(session_t *const session, xcb_configure_req
         return;
     }
 
-    client_move(con, client, ev->x, ev->y);
-    client_resize(con, client, ev->width, ev->height);
+    // update geometry
+    clientprops_set_pos(con, client, newpos);
+    clientprops_set_size(con, client, newsize);
 }

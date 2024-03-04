@@ -7,7 +7,7 @@
 
 #include "drag.h"
 
-#include "manager/client.h"
+#include "manager/client/client.h"
 #include "manager/session.h"
 #include "util/logging.h"
 
@@ -129,6 +129,7 @@ static void move_and_wait(xcb_connection_t *const con, session_t *const session,
     xcb_motion_notify_event_t *mnev;
 
     offset_t ptrdelta;
+    offset_t newpos;
 
     uint8_t ungrab = 0;
 
@@ -142,13 +143,15 @@ static void move_and_wait(xcb_connection_t *const con, session_t *const session,
         mnev = (xcb_motion_notify_event_t *) ev;
         ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
 
+        newpos = (offset_t) { innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y };
+
         switch (ev->response_type) {
         case XCB_CONFIGURE_REQUEST:
         case XCB_MAP_REQUEST:
             handler(session, ev);
             // fallthrough
         case XCB_MOTION_NOTIFY:
-            client_move(con, client, innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y);
+            clientprops_set_pos(con, client, newpos);
             break;
         case XCB_KEY_PRESS:
         case XCB_KEY_RELEASE:
@@ -230,7 +233,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             }
 
             // dimc is a bit mask indicating if the width and height of the client has changed respectively.
-            const uint8_t dimc = client_resize(con, client, updsize.width, updsize.height);
+            const uint8_t dimc = clientprops_set_size(con, client, updsize);
 
             // move the window (clamped to maxpos and minpos)
             if ((move & 0x1) != 0 && (dimc & 0x1) == 0) {
@@ -245,7 +248,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
                 else
                     updpos.y = maxpos.y;
             }
-            client_move(con, client, updpos.x, updpos.y);
+            clientprops_set_pos(con, client, updpos);
             break;
         case XCB_KEY_PRESS:
         case XCB_KEY_RELEASE:

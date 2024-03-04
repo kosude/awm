@@ -8,10 +8,10 @@
 #include "session.h"
 
 #include "init/config.h"
+#include "manager/client/client.h"
 #include "manager/multihead/monitor.h"
 #include "manager/multihead/randr.h"
 #include "manager/multihead/xinerama.h"
-#include "manager/client.h"
 #include "manager/events.h"
 #include "util/logging.h"
 #include "util/xstr.h"

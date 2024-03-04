@@ -13,8 +13,8 @@
 #endif
 
 #include "init/config.h"
+#include "manager/client/clientset.h"
 #include "manager/multihead/monitorset.h"
-#include "manager/clientset.h"
 
 #include <xcb/xcb.h>
 

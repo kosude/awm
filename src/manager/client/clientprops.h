@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__client_h
-#define __manager__client_h
+#ifndef __manager__clientprops_h
+#define __manager__clientprops_h
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -16,6 +16,8 @@
 #include "data/rect.h"
 
 #include <xcb/xcb.h>
+
+typedef struct client_t client_t;
 
 /**
  * A datastructure of properties of a managed client.
@@ -33,40 +35,9 @@ typedef struct clientprops_t {
 } clientprops_t;
 
 /**
- * A structure representing a managed (i.e. reparented) client (X window pair).
- */
-typedef struct client_t {
-    /** The inner window, aka the application window - left to the application to render into. */
-    xcb_window_t inner;
-    /** The parent/frame window - rendered into and directly managed by awm. */
-    xcb_window_t frame;
-
-    /** Client properties. */
-    clientprops_t properties;
-} client_t;
-
-/**
- * Create a framed client to hold the given inner window - the window will be reparented under the new frame.
- */
-client_t client_init_framed(
-    xcb_connection_t *const con,
-    xcb_screen_t *const scr,
-    const xcb_window_t inner
-);
-
-/**
- * Destroy the frame in the given client and reparent the inner window to root.
- */
-void client_frame_destroy(
-    xcb_connection_t *const con,
-    client_t *const client,
-    const xcb_window_t root
-);
-
-/**
  * Raise the specified client to the top of the stack.
  */
-void client_raise(
+void clientprops_set_raised(
     xcb_connection_t *const con,
     client_t *const client
 );
@@ -74,7 +45,7 @@ void client_raise(
 /**
  * Switch window focus to the given client.
  */
-void client_focus(
+void clientprops_set_focused(
     xcb_connection_t *const con,
     client_t *const client
 );
@@ -83,11 +54,10 @@ void client_focus(
  * Move the client to the given coordinates, assuming those are of the inner window. Returns 0 if no change occurred.
  * The return value is guaranteed to be a bit-mask. 0b01 -> x-pos changed; 0b10 -> y-pos changed.
  */
-uint8_t client_move(
+uint8_t clientprops_set_pos(
     xcb_connection_t *const con,
     client_t *const client,
-    const uint32_t x,
-    const uint32_t y
+    const offset_t pos
 );
 
 /**
@@ -95,11 +65,10 @@ uint8_t client_move(
  * The return value is guaranteed to be a bit-mask. 0b0001 -> width changed; 0b0010 -> height changed. If these bits are set, and if 0b0100 or 0b1000
  * are set, then the max dims for width or height respectively have been reached. Otherwise, minimum dims have been reached.
  */
-uint8_t client_resize(
+uint8_t clientprops_set_size(
     xcb_connection_t *const con,
     client_t *const client,
-    uint32_t width,
-    uint32_t height
+    const extent_t extent
 );
 
 #ifdef __cplusplus
