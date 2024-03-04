@@ -50,16 +50,16 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
 
     switch (t) {
         case XCB_BUTTON_PRESS:
-            handle_button_press(session, (xcb_button_press_event_t *) ev);
+            handle_button_press(session, (xcb_button_press_event_t *)ev);
             goto out;
         case XCB_UNMAP_NOTIFY:
-            handle_unmap_notify(session, (xcb_unmap_notify_event_t *) ev);
+            handle_unmap_notify(session, (xcb_unmap_notify_event_t *)ev);
             goto out;
         case XCB_MAP_REQUEST:
-            handle_map_request(session, (xcb_map_request_event_t *) ev);
+            handle_map_request(session, (xcb_map_request_event_t *)ev);
             goto out;
         case XCB_CONFIGURE_REQUEST:
-            handle_configure_request(session, (xcb_configure_request_event_t *) ev);
+            handle_configure_request(session, (xcb_configure_request_event_t *)ev);
             goto out;
         case XCB_PROPERTY_NOTIFY:
             // BUG fix WM_NORMAL_HINTS properties (and others) not being updated when changed

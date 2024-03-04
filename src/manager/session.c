@@ -127,7 +127,7 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
     *client = client_init_framed(con, scr, win);
 
     // if there was an error framing the client
-    if (client->frame == (xcb_window_t) -1) {
+    if (client->frame == (xcb_window_t)-1) {
         return NULL;
     }
 

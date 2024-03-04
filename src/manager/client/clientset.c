@@ -44,8 +44,8 @@ uint8_t clientset_push(clientset_t *const set, client_t *const client) {
         *const fht = set->byframe_ht;
 
     const uint32_t
-        ikey = (uint32_t) client->inner,
-        fkey = (uint32_t) client->frame;
+        ikey = (uint32_t)client->inner,
+        fkey = (uint32_t)client->frame;
 
     // adding the same client to separate htables to index by both child and parent windows
     htable_err_t err =

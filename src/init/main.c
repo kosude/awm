@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
 
     int scrnum, conerr;
 
-    LINFO("awm %d-bit", (int) (8 * sizeof(void *)));
+    LINFO("awm %d-bit", (int)(8 * sizeof(void *)));
 
     // set callbacks for controlled exits + cleanup
-    set_signal_callbacks((signal_callback_data_t) {
+    set_signal_callbacks((signal_callback_data_t){
         .con = con,
         .session = &session
     });

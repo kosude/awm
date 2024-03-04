@@ -44,7 +44,7 @@ uint8_t monitorset_push(monitorset_t *const set, monitor_t *const monitor) {
     set->listhead = monitor;
 
     htable_u32_t *const ht = set->byoutput_ht;
-    const uint32_t key = (uint32_t) monitor->output;
+    const uint32_t key = (uint32_t)monitor->output;
 
     if (key == UINT32_MAX) {
         // key is set to max on monitors created from Xinerama, so output isnt valid, and so we don't add it to the byoutput htable

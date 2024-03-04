@@ -182,7 +182,7 @@ static uint8_t load_config_file(char *const path, session_config_t *conf) {
 }
 
 static int inih_handler(void *user, const char *sect, const char *name, const char *val) {
-    session_config_t *conf = (session_config_t *) user;
+    session_config_t *conf = (session_config_t *)user;
     char *checksect;
 
 #   define STRTOBOOL(s, def) (strcasecmp(s, "true") == 0) ? 1 : ((strcasecmp(s, "false") == 0) ? 0 : def)

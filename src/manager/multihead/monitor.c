@@ -64,7 +64,7 @@ monitor_t monitor_init_xinerama(const xcb_xinerama_screen_info_t *info) {
     m.output = UINT32_MAX;
     m.next = NULL;
 
-    m.dims = (rect_t) {
+    m.dims = (rect_t){
         .extent = {
             .width = info->width,
             .height = info->height

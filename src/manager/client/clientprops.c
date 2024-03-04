@@ -40,13 +40,13 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
         LLOG("MIN: %dx%d", hints.min_width, hints.min_height);
         LLOG("MAX: %dx%d", hints.max_width, hints.max_height);
 
-        props.maxsize.width =  (hints.max_width > 0) ?  (uint32_t) hints.max_width :  UINT32_MAX;
-        props.maxsize.height = (hints.max_height > 0) ? (uint32_t) hints.max_height : UINT32_MAX;
+        props.maxsize.width =  (hints.max_width > 0) ?  (uint32_t)hints.max_width  : UINT32_MAX;
+        props.maxsize.height = (hints.max_height > 0) ? (uint32_t)hints.max_height : UINT32_MAX;
     } else {
         LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
 
-        props.minsize = (extent_t) { 20, 20 };
-        props.maxsize = (extent_t) { UINT32_MAX, UINT32_MAX };
+        props.minsize = (extent_t){ 20, 20 };
+        props.maxsize = (extent_t){ UINT32_MAX, UINT32_MAX };
     }
 
     free(geom);
@@ -81,7 +81,7 @@ uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client,
 #   define MIN(a, b) ((a) < (b) ? (a) : (b))
 
     // coordinates for constraints
-    const int32_t minx = MIN(0 - (int) (rect.extent.width - 30), 0), // keep at least 30 x pixels of the client on the screen
+    const int32_t minx = MIN(30 - (int32_t)rect.extent.width, 0), // keep at least 30 x pixels of the client on the screen
                   miny = margin.top; // keep top window decorations onscreen
 
 #   undef MIN
@@ -90,7 +90,7 @@ uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client,
     if (newx < minx) newx = minx;
     if (newy < miny) newy = miny;
 
-    client->properties.rect.offset = (offset_t) { newx, newy };
+    client->properties.rect.offset = (offset_t){ newx, newy };
 
     const int32_t newfx = newx - margin.left,
                   newfy = newy - margin.top;
@@ -129,7 +129,7 @@ uint8_t clientprops_set_size(xcb_connection_t *const con, client_t *const client
     const uint32_t maxhei = maxsize.height;
 
     // constrain width
-    if (width < minwid || (int) width < 0) {
+    if (width < minwid || (int)width < 0) {
         width = minwid;
     } else if (width > maxwid) {
         width = maxwid;
@@ -138,7 +138,7 @@ uint8_t clientprops_set_size(xcb_connection_t *const con, client_t *const client
     }
 
     // constrain height
-    if (height < minhei || (int) height < 0) {
+    if (height < minhei || (int)height < 0) {
         height = minhei;
     } else if (height > maxhei) {
         height = maxhei;
@@ -146,7 +146,7 @@ uint8_t clientprops_set_size(xcb_connection_t *const con, client_t *const client
         hc = 1;
     }
 
-    client->properties.rect.extent = (extent_t) { width, height };
+    client->properties.rect.extent = (extent_t){ width, height };
 
     uint32_t fwidth =  width + margin.left + margin.right,
              fheight = height + margin.top + margin.bottom;

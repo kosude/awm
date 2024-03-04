@@ -68,7 +68,7 @@ void drag_start_and_wait(session_t *const session, client_t *const client, const
     if (!qreply) {
         goto out;
     }
-    ptrpos = (offset_t) {
+    ptrpos = (offset_t){
         qreply->root_x,
         qreply->root_y
     };
@@ -102,10 +102,10 @@ out:
 }
 
 static uint8_t get_resize_side_mask(offset_t ptrpos, offset_t innerpos, extent_t innersize, margin_t framemarg) {
-    const resize_side_t inleft =    RESIZE_LEFT * (ptrpos.x <= (int32_t) innerpos.x);
-    const resize_side_t inright =   RESIZE_RIGHT * (ptrpos.x >= (int32_t) (innerpos.x + innersize.width));
-    const resize_side_t intop =     RESIZE_TOP * (ptrpos.y <= (int32_t) (innerpos.y - (framemarg.top - framemarg.left)));
-    const resize_side_t inbottom =  RESIZE_BOTTOM * (ptrpos.y >= (int32_t) (innerpos.y + innersize.height));
+    const resize_side_t inleft =    RESIZE_LEFT *   (ptrpos.x <= (int32_t)innerpos.x);
+    const resize_side_t inright =   RESIZE_RIGHT *  (ptrpos.x >= (int32_t)(innerpos.x + innersize.width));
+    const resize_side_t intop =     RESIZE_TOP *    (ptrpos.y <= (int32_t)(innerpos.y - (framemarg.top - framemarg.left)));
+    const resize_side_t inbottom =  RESIZE_BOTTOM * (ptrpos.y >= (int32_t)(innerpos.y + innersize.height));
 
     return inleft | inright | intop | inbottom;
 }
@@ -128,10 +128,10 @@ static void move_and_wait(xcb_connection_t *const con, session_t *const session,
         }
 
         // get change in pointer position
-        mnev = (xcb_motion_notify_event_t *) ev;
-        ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
+        mnev = (xcb_motion_notify_event_t *)ev;
+        ptrdelta = (offset_t){ mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
 
-        newpos = (offset_t) { innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y };
+        newpos = (offset_t){ innerpos.x + ptrdelta.x, innerpos.y + ptrdelta.y };
 
         switch (ev->response_type) {
         case XCB_CONFIGURE_REQUEST:
@@ -187,8 +187,8 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
         }
 
         // get change in pointer position
-        mnev = (xcb_motion_notify_event_t *) ev;
-        ptrdelta = (offset_t) { mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
+        mnev = (xcb_motion_notify_event_t*) ev;
+        ptrdelta = (offset_t){ mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
 
         updsize = innersize;
         updpos = innerpos;

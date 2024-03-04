@@ -70,7 +70,7 @@ uint8_t randr_init(xcb_connection_t *const con, const xcb_window_t root, const u
     // request to recieve randr events
     xcb_void_cookie_t c = xcb_randr_select_input_checked(
         con, root,
-        (uint16_t) (
+        (uint16_t)(
             XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE |
             XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE |
             XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE));

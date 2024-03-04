@@ -39,7 +39,7 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
     client.inner = inner;
     client.frame = frame_create(con, scr, &client);
 
-    if (client.frame == (xcb_window_t) -1) {
+    if (client.frame == (xcb_window_t)-1) {
         // error
         goto out;
     }
@@ -117,6 +117,10 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
             MAX(rect.offset.y - (int32_t)margin.top, 0)
         }
     };
+
+    // update client properties in case the position was changed to accomodate for the new frame
+    client->properties.rect.offset.x = framerect.offset.x + margin.left;
+    client->properties.rect.offset.y = framerect.offset.y + margin.top;
 
 #   undef MAX
 
