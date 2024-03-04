@@ -11,8 +11,6 @@
 #include "util/xstr.h"
 
 #include <string.h>
-#include <xcb/xcb_icccm.h>
-#include <xcb/xcb_ewmh.h>
 
 /**
  * Create a frame for the given client.
@@ -31,20 +29,12 @@ static void client_register_events(
     client_t *const client
 );
 
-/**
- * Gets all window properties (e.g. size, position, hints, etc) and returns them as a clientprops_t struct.
- */
-static clientprops_t client_get_all_properties(
-    xcb_connection_t *const con,
-    const xcb_window_t win
-);
-
 client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t inner) {
     xcb_generic_error_t *err;
 
     client_t client;
 
-    client.properties = client_get_all_properties(con, inner);
+    client.properties = clientprops_init_all(con, inner);
 
     client.inner = inner;
     client.frame = frame_create(con, scr, &client);
@@ -112,6 +102,17 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     const xcb_window_t inner = client->inner;
     const clientprops_t props = client->properties;
 
+    // construct frame rect from inner rect and margin
+    const rect_t rect = props.rect;
+    const margin_t margin = props.innermargin;
+    const rect_t framerect = {
+        .extent = {
+            rect.extent.width  + margin.left + margin.right,
+            rect.extent.height + margin.top  + margin.bottom
+        },
+        .offset = rect.offset
+    };
+
     const xcb_window_t root = scr->root;
     const xcb_window_t rootvis = scr->root_visual;
 
@@ -125,8 +126,8 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     // create frame window
     err = xcb_request_check(con, xcb_create_window_checked(
         con, XCB_COPY_FROM_PARENT, frame, root,
-        props.framerect.offset.x, props.framerect.offset.y,
-        props.framerect.extent.width, props.framerect.extent.height,
+        framerect.offset.x, framerect.offset.y,
+        framerect.extent.width, framerect.extent.height,
         0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, rootvis,
         XCB_CW_BACK_PIXEL,
@@ -185,56 +186,4 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
             return;
         }
     }
-}
-
-static clientprops_t client_get_all_properties(xcb_connection_t *const con, const xcb_window_t win) {
-    clientprops_t props;
-
-    xcb_generic_error_t *err;
-    xcb_size_hints_t hints;
-
-    // get window geometry
-    xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
-
-    // TODO: stop hardcoding frame margin
-    props.innermargin.top = 28;
-    props.innermargin.bottom = 4;
-    props.innermargin.left = props.innermargin.right = 4; // make sure left and right are equal
-
-    props.framerect.extent.width =  geom->width  + props.innermargin.left + props.innermargin.right;
-    props.framerect.extent.height = geom->height + props.innermargin.top  + props.innermargin.bottom;
-    props.framerect.offset.x = geom->x;
-    props.framerect.offset.y = geom->y;
-
-    // get WM_NORMAL_HINTS
-    if (xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints(con, win), &hints, &err)) {
-        props.mindims.width = hints.min_width + props.innermargin.left + props.innermargin.right;
-        props.mindims.height = hints.min_height + props.innermargin.top + props.innermargin.bottom;
-
-        LLOG("MIN: %dx%d", hints.min_width, hints.min_height);
-        LLOG("MAX: %dx%d", hints.max_width, hints.max_height);
-
-        if (hints.max_width > 0) {
-            props.maxdims.width = hints.max_width  + props.innermargin.left + props.innermargin.right;
-        } else {
-            props.maxdims.width = UINT32_MAX;
-        }
-        if (hints.max_height > 0) {
-            props.maxdims.height = hints.max_height + props.innermargin.top + props.innermargin.bottom;
-        } else {
-            props.maxdims.height = UINT32_MAX;
-        }
-    } else {
-        LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
-
-        props.mindims.width = 20 + props.innermargin.left + props.innermargin.right;
-        props.mindims.height = 20 + props.innermargin.top + props.innermargin.bottom;
-
-        props.maxdims.width = UINT32_MAX;
-        props.maxdims.height = UINT32_MAX;
-    }
-
-    free(geom);
-
-    return props;
 }

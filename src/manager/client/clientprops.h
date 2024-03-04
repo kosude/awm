@@ -23,16 +23,24 @@ typedef struct client_t client_t;
  * A datastructure of properties of a managed client.
  */
 typedef struct clientprops_t {
-    /** Client frame size and position data */
-    rect_t framerect;
+    /** Client size and position data (of inner window, NOT including the frame/decorations) */
+    rect_t rect;
+    /** Minimum client size (of inner window). This is hinted by applications and clamped to a standard minimum. */
+    extent_t minsize;
+    /** Maximum client size (of inner window). This is hinted by applications, or defaults to UINT32_MAX. */
+    extent_t maxsize;
+
     /** Buffer/margin between the frame and inner window */
     margin_t innermargin;
-
-    /** Minimum frame size. This is hinted by applications and clamped to a standard minimum. */
-    extent_t mindims;
-    /** Maximum frame size. This is hinted by applications, or defaults to UINT32_MAX. */
-    extent_t maxdims;
 } clientprops_t;
+
+/**
+ * Get all relevant window properties on the given X window and relate them to the resulting clientprops_t structure.
+ */
+clientprops_t clientprops_init_all(
+    xcb_connection_t *const con,
+    const xcb_window_t win
+);
 
 /**
  * Raise the specified client to the top of the stack.

@@ -58,22 +58,10 @@ void drag_start_and_wait(session_t *const session, client_t *const client, const
     xcb_query_pointer_reply_t *qreply = NULL;
 
     const margin_t framemarg = client->properties.innermargin;
-    offset_t innerpos;
-    extent_t innersize;
+    const rect_t rect = client->properties.rect;
     offset_t ptrpos;
 
     uint8_t side;
-
-    // innerpos - the client expects this to be position of the inner window so we add the frame margin
-    innerpos = (offset_t) {
-        client->properties.framerect.offset.x + framemarg.left,
-        client->properties.framerect.offset.y + framemarg.top
-    };
-    // we also need to get innersize for inner, not frame
-    innersize = (extent_t) {
-        client->properties.framerect.extent.width - (framemarg.left + framemarg.right),
-        client->properties.framerect.extent.height - (framemarg.top + framemarg.bottom)
-    };
 
     // get pointer starting position
     qreply = xcb_query_pointer_reply(con, xcb_query_pointer(con, root), NULL);
@@ -86,7 +74,7 @@ void drag_start_and_wait(session_t *const session, client_t *const client, const
     };
 
     // determine if the window is being dragged at the edge, and if so which one(s)
-    side = get_resize_side_mask(ptrpos, innerpos, innersize, framemarg);
+    side = get_resize_side_mask(ptrpos, rect.offset, rect.extent, framemarg);
 
     // grab pointer
     greply = xcb_grab_pointer_reply(con, xcb_grab_pointer(con, 0, root,
@@ -99,9 +87,9 @@ void drag_start_and_wait(session_t *const session, client_t *const client, const
     }
 
     if (side == RESIZE_NONE) {
-        move_and_wait(con, session, client, handler, ptrpos, innerpos);
+        move_and_wait(con, session, client, handler, ptrpos, rect.offset);
     } else {
-        resize_and_wait(con, session, client, handler, ptrpos, innerpos, innersize, side);
+        resize_and_wait(con, session, client, handler, ptrpos, rect.offset, rect.extent, side);
     }
 
     xcb_ungrab_pointer(con, XCB_CURRENT_TIME);
@@ -177,22 +165,19 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
 
     uint8_t ungrab = 0;
 
-    // When resizing from top or left, the window is moved to counter it. Here we calculate the maximum position of this movement.
+    const extent_t minsize = client->properties.minsize,
+                   maxsize = client->properties.maxsize;
+
+    // When resizing from top or left, the window is moved to counter it. Here we calculate the minimum of this movement.
     // We do this by getting the maximum change in position (window size minus the minimum inner-window size) and adding it to the initial position.
     // We will clamp to this maximum position for when the window's minimum size is reached (from top or left edges).
     const offset_t maxpos = {
-        .x = innerpos.x +
-            innersize.width - (client->properties.mindims.width - (client->properties.innermargin.left + client->properties.innermargin.right)),
-        .y = innerpos.y +
-            innersize.height - (client->properties.mindims.height - (client->properties.innermargin.top + client->properties.innermargin.bottom))
+        .x = innerpos.x + (innersize.width - minsize.width),
+        .y = innerpos.y + (innersize.height - minsize.height)
     };
-
-    // we do the same as above but with minimum positions, in case of resizing to the window's maximum size
     const offset_t minpos = {
-        .x = innerpos.x +
-            innersize.width - (client->properties.maxdims.width - (client->properties.innermargin.left + client->properties.innermargin.right)),
-        .y = innerpos.y +
-            innersize.height - (client->properties.maxdims.height - (client->properties.innermargin.top + client->properties.innermargin.bottom))
+        .x = innerpos.x + (innersize.width - maxsize.width),
+        .y = innerpos.y + (innersize.height - maxsize.height)
     };
 
     do {
