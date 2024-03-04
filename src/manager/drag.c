@@ -220,6 +220,10 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             // dimc is a bit mask indicating if the width and height of the client has changed respectively.
             const uint8_t dimc = clientprops_set_size(con, client, updsize);
 
+            if (!move) {
+                break;
+            }
+
             // move the window (clamped to maxpos and minpos)
             if ((move & 0x1) != 0 && (dimc & 0x1) == 0) {
                 if (dimc & 0x4)

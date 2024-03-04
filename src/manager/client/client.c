@@ -110,6 +110,7 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
             rect.extent.width  + margin.left + margin.right,
             rect.extent.height + margin.top  + margin.bottom
         },
+        // FIXME: we should subtract margin from the initial offset (otherwise first move on windows is janky) but still clamp it to 0,0
         .offset = rect.offset
     };
 
@@ -151,7 +152,7 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
 
 static void client_register_events(xcb_connection_t *const con, client_t *const client) {
     xcb_generic_error_t *err;
-    xcb_void_cookie_t vcookies[4];
+    xcb_void_cookie_t vcookies[5];
 
     const xcb_window_t inner = client->inner;
     const xcb_window_t frame = client->frame;
@@ -162,8 +163,14 @@ static void client_register_events(xcb_connection_t *const con, client_t *const 
             XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
         });
 
+    // request to recieve events on inner window
+    vcookies[1] = xcb_change_window_attributes_checked(con, inner, XCB_CW_EVENT_MASK,
+        (uint32_t[]) {
+            XCB_EVENT_MASK_PROPERTY_CHANGE
+        });
+
     // grab left, middle, and right mouse buttons for click-to-raise functionality
-    for (uint16_t i = 1; i <= 3; i++) {
+    for (uint16_t i = 2; i < 5; i++) {
         // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.
         //   this allows us to replay pointer/button events, propagating them to the client so they aren't lost (and the user can still click on it)
         //   (for more, see https://unix.stackexchange.com/a/397466)

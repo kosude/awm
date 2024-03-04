@@ -40,18 +40,13 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
         LLOG("MIN: %dx%d", hints.min_width, hints.min_height);
         LLOG("MAX: %dx%d", hints.max_width, hints.max_height);
 
-        if (hints.max_width > 0)    props.maxsize.width = hints.max_width;
-        else                        props.maxsize.width = UINT32_MAX;
-        if (hints.max_height > 0)   props.maxsize.height = hints.max_height;
-        else                        props.maxsize.height = UINT32_MAX;
+        props.maxsize.width =  (hints.max_width > 0) ?  (uint32_t) hints.max_width :  UINT32_MAX;
+        props.maxsize.height = (hints.max_height > 0) ? (uint32_t) hints.max_height : UINT32_MAX;
     } else {
         LERR("Failed to get WM_NORMAL_HINTS from X window 0x%08x", win);
 
-        props.minsize.width = 20;
-        props.minsize.height = 20;
-
-        props.maxsize.width = UINT32_MAX;
-        props.maxsize.height = UINT32_MAX;
+        props.minsize = (extent_t) { 20, 20 };
+        props.maxsize = (extent_t) { UINT32_MAX, UINT32_MAX };
     }
 
     free(geom);

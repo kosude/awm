@@ -62,9 +62,8 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
             handle_configure_request(session, (xcb_configure_request_event_t *) ev);
             goto out;
         case XCB_PROPERTY_NOTIFY:
-            // BUG (last left off here): fix WM_NORMAL_HINTS properties (and others) not being updated when changed
-            //          FOR EXAMPLE: in GLFW programs, setting size limits does not apply if done whilst awm is running.
-            LLOG("PROPERTY NOTIFY");
+            // BUG fix WM_NORMAL_HINTS properties (and others) not being updated when changed
+            //     FOR EXAMPLE: in GLFW programs, setting size limits does not apply if done whilst awm is running.
             goto out;
         default:
             goto out_unhandled;
