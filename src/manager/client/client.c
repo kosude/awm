@@ -102,6 +102,8 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     const xcb_window_t inner = client->inner;
     const clientprops_t props = client->properties;
 
+#   define MAX(a, b) ((a) > (b) ? (a) : (b))
+
     // construct frame rect from inner rect and margin
     const rect_t rect = props.rect;
     const margin_t margin = props.innermargin;
@@ -110,9 +112,13 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
             rect.extent.width  + margin.left + margin.right,
             rect.extent.height + margin.top  + margin.bottom
         },
-        // FIXME: we should subtract margin from the initial offset (otherwise first move on windows is janky) but still clamp it to 0,0
-        .offset = rect.offset
+        .offset = {
+            MAX(rect.offset.x - (int32_t)margin.left, 0),
+            MAX(rect.offset.y - (int32_t)margin.top, 0)
+        }
     };
+
+#   undef MAX
 
     const xcb_window_t root = scr->root;
     const xcb_window_t rootvis = scr->root_visual;
