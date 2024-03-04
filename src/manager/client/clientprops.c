@@ -87,21 +87,6 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
     }
 }
 
-void clientprops_set_raised(xcb_connection_t *const con, client_t *const client) {
-    const xcb_window_t frame = client->frame;
-
-    xcb_configure_window(con, frame,
-        XCB_CONFIG_WINDOW_STACK_MODE,
-        (uint32_t []) { XCB_STACK_MODE_ABOVE });
-    xcb_flush(con);
-}
-
-void clientprops_set_focused(xcb_connection_t *const con, client_t *const client) {
-    const xcb_window_t inner = client->inner;
-
-    xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, inner, XCB_CURRENT_TIME);
-}
-
 uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client, const offset_t pos) {
     const xcb_window_t frame = client->frame;
 

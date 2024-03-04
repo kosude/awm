@@ -97,6 +97,21 @@ void client_frame_destroy(xcb_connection_t *const con, client_t *const client, c
     client->frame = 0;
 }
 
+void client_raise(xcb_connection_t *const con, client_t *const client) {
+    const xcb_window_t frame = client->frame;
+
+    xcb_configure_window(con, frame,
+        XCB_CONFIG_WINDOW_STACK_MODE,
+        (uint32_t []) { XCB_STACK_MODE_ABOVE });
+    xcb_flush(con);
+}
+
+void client_focus(xcb_connection_t *const con, client_t *const client) {
+    const xcb_window_t inner = client->inner;
+
+    xcb_set_input_focus(con, XCB_INPUT_FOCUS_POINTER_ROOT, inner, XCB_CURRENT_TIME);
+}
+
 static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *const scr, client_t *const client) {
     const xcb_window_t inner = client->inner;
     const clientprops_t props = client->properties;

@@ -125,8 +125,8 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
         return;
     }
 
-    clientprops_set_focused(con, client);
-    clientprops_set_raised(con, client);
+    client_focus(con, client);
+    client_raise(con, client);
 
     // init drag if clicking on frame, or if meta dragging is enabled and being done
     drag = is_frame || (session->cfg.drag_n_drop.meta_dragging && (ev->state & XCB_MOD_MASK_4));
@@ -188,8 +188,8 @@ static void handle_map_request(session_t *const session, xcb_map_request_event_t
 
     // focus and raise new clients
     // TODO: check if this needs to depend on a window hint, some windows might want to not open on top?
-    clientprops_set_focused(con, client);
-    clientprops_set_raised(con, client);
+    client_focus(con, client);
+    client_raise(con, client);
 }
 
 static void handle_configure_request(session_t *const session, xcb_configure_request_event_t *const ev) {

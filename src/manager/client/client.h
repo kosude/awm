@@ -47,6 +47,22 @@ void client_frame_destroy(
     const xcb_window_t root
 );
 
+/**
+ * Raise the specified client to the top of the stack.
+ */
+void client_raise(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
+/**
+ * Switch window focus to the given client.
+ */
+void client_focus(
+    xcb_connection_t *const con,
+    client_t *const client
+);
+
 #ifdef __cplusplus
     }
 #endif

@@ -53,22 +53,6 @@ void clientprops_update_normal_hints(
 );
 
 /**
- * Raise the specified client to the top of the stack.
- */
-void clientprops_set_raised(
-    xcb_connection_t *const con,
-    client_t *const client
-);
-
-/**
- * Switch window focus to the given client.
- */
-void clientprops_set_focused(
-    xcb_connection_t *const con,
-    client_t *const client
-);
-
-/**
  * Move the client to the given coordinates, assuming those are of the inner window. Returns 0 if no change occurred.
  * The return value is guaranteed to be a bit-mask. 0b01 -> x-pos changed; 0b10 -> y-pos changed.
  */
