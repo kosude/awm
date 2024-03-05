@@ -254,7 +254,7 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
     const struct propertynotify_handler_t *handler = NULL;
     const uint32_t handlern = sizeof(propertynotify_handlers) / sizeof(struct propertynotify_handler_t);
 
-    xcb_get_property_reply_t *prop;
+    xcb_get_property_reply_t *prop = NULL;
     xcb_generic_error_t *err;
 
     // get appropriate handler for the notified atom
