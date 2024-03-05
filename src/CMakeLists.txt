@@ -17,7 +17,6 @@ set(SRCS
     "manager/session.c"
 
     "util/genutil.c"
-    "util/inih.c"
     "util/path.c"
     "util/xstr.c"
 )
@@ -40,4 +39,7 @@ target_include_directories(${TARGET_NAME} PRIVATE ${XCB_INCLUDE_DIRS})
 
 # zf_log v0.4.1
 add_subdirectory("${AWM_DEPS_DIR}/zf_log/" "${PROJECT_BINARY_DIR}/deps/zf_log/")
-target_link_libraries(${TARGET_NAME} zf_log)
+# inih r58
+add_subdirectory("${AWM_DEPS_DIR}/inih/" "${PROJECT_BINARY_DIR}/deps/inih/")
+
+target_link_libraries(${TARGET_NAME} zf_log inih)

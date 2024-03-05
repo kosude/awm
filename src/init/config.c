@@ -7,10 +7,11 @@
 
 #include "config.h"
 
-#include "util/inih.h"
 #include "util/logging.h"
 #include "util/path.h"
 #include "version.h"
+
+#include "inih/ini.h"
 
 #include <errno.h>
 #include <getopt.h>

@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.10) # modified from original: updated minimum version from 3.2
+cmake_minimum_required(VERSION 3.10) # From the Awm project -- MODIFIED from original: updated minimum version from 3.2
 
 # zf_log target (required)
 set(HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR})

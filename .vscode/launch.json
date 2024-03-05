@@ -7,7 +7,7 @@
             "program": "${workspaceFolder}/build/awm/awm",
             "args": [
                 "-p",
-                "test_config"
+                "tests/config"
             ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build project",
@@ -20,7 +20,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/awm/awm",
-            "args": [],
+            "args": [
+                "-p",
+                "tests/config"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
