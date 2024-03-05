@@ -72,8 +72,12 @@ static struct propertynotify_handler_t propertynotify_handlers[] = {
     // note -- atom fields are populated after atoms are retrieved from the X server
     // FIXME: handlers aren't currently called because atoms aren't being retrieved yet.
 
-    { 0, UINT32_MAX, propertynotify_normal_hints }
+    { 0, UINT32_MAX, propertynotify_normal_hints } // WM_NORMAL_HINTS
 };
+
+void event_propertynotify_handlers_init(void) {
+    propertynotify_handlers[0].atom = XCB_ATOM_WM_NORMAL_HINTS;
+}
 
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     const uint8_t t = ev->response_type;
@@ -283,7 +287,6 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
     }
 
     handler->func(con, client, prop);
-    free(prop);
 }
 
 static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {

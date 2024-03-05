@@ -16,6 +16,7 @@ set(SRCS
     "manager/events.c"
     "manager/session.c"
 
+    "util/genutil.c"
     "util/inih.c"
     "util/path.c"
     "util/xstr.c"

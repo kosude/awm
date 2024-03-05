@@ -19,6 +19,11 @@
 typedef struct session_t session_t;
 
 /**
+ * Initialise PropertyNotify event handlers, assuming X atoms have been retrieved successfully.
+ */
+void event_propertynotify_handlers_init(void);
+
+/**
  * Pointer to a function that takes an event and handles it accordingly.
  */
 typedef void (*eventhandler_t)(session_t *const, xcb_generic_event_t *const);

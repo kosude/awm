@@ -7,6 +7,7 @@
 
 #include "client.h"
 
+#include "util/genutil.h"
 #include "util/logging.h"
 #include "util/xstr.h"
 
@@ -116,8 +117,6 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
     const xcb_window_t inner = client->inner;
     const clientprops_t props = client->properties;
 
-#   define MAX(a, b) ((a) > (b) ? (a) : (b))
-
     // construct frame rect from inner rect and margin
     const rect_t rect = props.rect;
     const margin_t margin = props.innermargin;
@@ -127,16 +126,14 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
             rect.extent.height + margin.top  + margin.bottom
         },
         .offset = {
-            MAX(rect.offset.x - (int32_t)margin.left, 0),
-            MAX(rect.offset.y - (int32_t)margin.top, 0)
+            max(rect.offset.x - (int32_t)margin.left, 0),
+            max(rect.offset.y - (int32_t)margin.top, 0)
         }
     };
 
     // update client properties in case the position was changed to accomodate for the new frame
     client->properties.rect.offset.x = framerect.offset.x + margin.left;
     client->properties.rect.offset.y = framerect.offset.y + margin.top;
-
-#   undef MAX
 
     const xcb_window_t root = scr->root;
     const xcb_window_t rootvis = scr->root_visual;

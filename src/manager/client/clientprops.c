@@ -8,6 +8,7 @@
 #include "clientprops.h"
 
 #include "client.h"
+#include "util/genutil.h"
 #include "util/logging.h"
 
 #include <xcb/xcb_ewmh.h>
@@ -61,6 +62,9 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
 
     uint8_t ok;
 
+    // geometry is updated in case it was changed, new geometry data is stored here temporarily
+    rect_t updgeom = props->rect;
+
     xcb_size_hints_t hints;
 
     // attempt to get size hints (if the given reply doesn't contain them already, query for them again)
@@ -77,14 +81,38 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
 
     // minimum window size
     if (hints.flags & XCB_ICCCM_SIZE_HINT_P_MIN_SIZE) {
-        props->minsize.width  = hints.min_width;
-        props->minsize.height = hints.min_height;
+        uint32_t mw,
+                 mh;
+        mw = (uint32_t)hints.min_width;
+        mh = (uint32_t)hints.min_height;
+        props->minsize.width =  mw;
+        props->minsize.height = mh;
+
+        // clamp geometry to min size
+        updgeom.extent.width =  (uint32_t)max(updgeom.extent.width, mw);
+        updgeom.extent.height = (uint32_t)max(updgeom.extent.height, mh);
     }
+
     // maximum window size
     if (hints.flags & XCB_ICCCM_SIZE_HINT_P_MAX_SIZE) {
-        props->maxsize.width  = (hints.max_width > 0)  ? (uint32_t)hints.max_width  : UINT32_MAX;
-        props->maxsize.height = (hints.max_height > 0) ? (uint32_t)hints.max_height : UINT32_MAX;
+        uint32_t mw,
+                 mh;
+        mw = (hints.max_width > 0)  ? (uint32_t)hints.max_width  : UINT32_MAX;
+        mh = (hints.max_height > 0) ? (uint32_t)hints.max_height : UINT32_MAX;
+        props->maxsize.width =  mw;
+        props->maxsize.height = mh;
+
+        // clamp geometry to max size
+        updgeom.extent.width =  (uint32_t)min(updgeom.extent.width, mw);
+        updgeom.extent.height = (uint32_t)min(updgeom.extent.height, mh);
+    } else {
+        // clear maximum size unless specified otherwise (i.e. no limit by default)
+        props->maxsize.width = UINT32_MAX;
+        props->maxsize.height = UINT32_MAX;
     }
+
+    clientprops_set_size(con, client, updgeom.extent);
+    clientprops_set_pos(con, client, updgeom.offset);
 }
 
 uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client, const offset_t pos) {
@@ -96,13 +124,9 @@ uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client,
     int32_t newx = pos.x,
             newy = pos.y;
 
-#   define MIN(a, b) ((a) < (b) ? (a) : (b))
-
     // coordinates for constraints
-    const int32_t minx = MIN(30 - (int32_t)rect.extent.width, 0), // keep at least 30 x pixels of the client on the screen
+    const int32_t minx = min(30 - (int32_t)rect.extent.width, 0), // keep at least 30 x pixels of the client on the screen
                   miny = margin.top; // keep top window decorations onscreen
-
-#   undef MIN
 
     // TODO: constrain to monitor bounds if there are no adjacent monitors
     if (newx < minx) newx = minx;

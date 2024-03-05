@@ -65,6 +65,9 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
     root = scr->root;
     session.root = root;
 
+    // TODO: retrieve X atoms
+    event_propertynotify_handlers_init();
+
     // prefetch X extensions
     if (session.cfg.force_xinerama) {
         xcb_prefetch_extension_data(con, &xcb_xinerama_id);
