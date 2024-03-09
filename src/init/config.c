@@ -22,7 +22,7 @@ static void usage(char *const argv0);
 static void version(void);
 
 // Look for default user + system config paths, or return `override` if not NULL.
-static char *get_config_path(char *const override);
+static char *get_config_path(char *const name, char *const override);
 static uint8_t load_config_file(char *const path, session_config_t *conf);
 static int inih_handler(void *user, const char *sect, const char *name, const char *val);
 
@@ -37,7 +37,7 @@ static session_config_t session_config = {
 
 uint8_t get_session_config(const int argc, char **const argv, session_config_t *cfg) {
     char *cfgpathoverride = NULL;
-    char *cfgpath;
+    char *cfgpath, *plpath;
     int opt;
 
     char *const argv0 = argv[0];
@@ -67,8 +67,16 @@ uint8_t get_session_config(const int argc, char **const argv, session_config_t *
         }
     }
 
+    // get plugin path and store it
+    plpath = get_config_path("plugins", cfgpathoverride);
+    if (!plpath) {
+        LWARN("No plugins path found");
+    } else {
+        session_config.paths.plugin_base = plpath;
+    }
+
     // load files from config path
-    cfgpath = get_config_path(cfgpathoverride);
+    cfgpath = get_config_path("conf", cfgpathoverride);
     free(cfgpathoverride);
     if (!cfgpath) {
         LWARN("No configuration path found");
@@ -111,7 +119,7 @@ static void version(void) {
     fprintf(stderr, "awm v%d.%d.%d\n", AWM_VERSION_MAJOR, AWM_VERSION_MINOR, AWM_VERSION_PATCH);
 }
 
-static char *get_config_path(char *const override) {
+static char *get_config_path(char *const name, char *const override) {
     char *ret, *home, *xdg_config_home;
 
     if (override) {
@@ -120,8 +128,8 @@ static char *get_config_path(char *const override) {
             goto checkuserdirs;
         }
 
-        // check for `override`/conf/
-        if (!asprintf(&ret, "%s/conf", override)) {
+        // check for `override`/`name`/
+        if (!asprintf(&ret, "%s/%s/", override, name)) {
             LERR("asprintf() fault");
             goto checkuserdirs;
         }
@@ -137,14 +145,14 @@ checkuserdirs:
 
     xdg_config_home = getenv("XDG_CONFIG_HOME");
     if (!xdg_config_home) {
-        if (!asprintf(&xdg_config_home, "%s/.config", home)) {
+        if (!asprintf(&xdg_config_home, "%s/.config/", home)) {
             LERR("asprintf() fault");
             return NULL;
         }
     }
 
-    // 1: check for $XDG_CONFIG_HOME/awm/conf/ (aka ~/.config/awm/conf/)
-    if (!asprintf(&ret, "%s/awm/conf", xdg_config_home)) {
+    // 1: check for $XDG_CONFIG_HOME/awm/`name`/ (aka ~/.config/awm/`name`/)
+    if (!asprintf(&ret, "%s/awm/%s/", xdg_config_home, name)) {
         free(xdg_config_home);
         LERR("asprintf() fault");
         return NULL;
@@ -155,8 +163,8 @@ checkuserdirs:
     }
     free(ret);
 
-    // 2: check for ~/.awm/conf/
-    if (!asprintf(&ret, "%s/.awm/conf", home)) {
+    // 2: check for ~/.awm/`name`/
+    if (!asprintf(&ret, "%s/.awm/%s/", home, name)) {
         LERR("asprintf() fault");
         return NULL;
     }
@@ -165,10 +173,15 @@ checkuserdirs:
     }
     free(ret);
 
-    // 3: (SYSTEM): check for /etc/awm/conf/
-    if (path_exists("/etc/awm/conf")) {
-        return "/etc/awm/conf";
+    // 3: (SYSTEM): check for /etc/awm/`name`/
+    if (!asprintf(&ret, "/etc/awm/%s/", name)) {
+        LERR("asprintf() fault");
+        return NULL;
     }
+    if (path_exists(ret)) {
+        return ret;
+    }
+    free(ret);
 
     return NULL;
 }

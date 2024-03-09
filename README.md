@@ -29,9 +29,9 @@ awm is modular via its plugins system. Official plugins are provided, although a
 
 #### Location
 
-Plugins are automatically located and loaded by awm at initialisation. In the future, a command-line argument as well as a standard location will be
-implemented (likely to be XDG-compliant, i.e. `$HOME/.config/awm/`) to be searched for window manager configuration. For the time being, though,
-the **current working directory** is used. Create a folder in the working directory called `plugins/`, and put plugins there.
+Plugins are automatically located and loaded by awm at initialisation. They are located in the base WM directory (e.g. `/etc/awm/`) under the
+subdirectory `plugins`. For example, a test plugin could be at `/etc/awm/plugins/test.so`. **Note that plugin binary names must not begin with a dot
+(.).**
 
 #### Specification
 

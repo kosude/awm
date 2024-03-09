@@ -1,9 +1,12 @@
-**/.vscode/*
-!**/.vscode/tasks.json
-!**/.vscode/launch.json
+.vscode/*
+!tasks.json
+!launch.json
 
 build/
+tests/config/plugins/*
 
 .DS_STORE
 
 vgcore.*
+
+!.gitkeep

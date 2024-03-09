@@ -102,7 +102,7 @@ static uint8_t plugin_find_all_paths(uint32_t *plcount, char **const plarr, cons
         char *dname = dir->d_name;
         uint8_t dtype = dir->d_type;
 
-        if (dtype != DT_REG) {
+        if (*dname == '.' || dtype != DT_REG) {
             continue;
         }
 

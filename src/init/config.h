@@ -27,6 +27,11 @@ typedef struct session_config_t {
         /** Enable the meta-dragging feature */
         uint8_t meta_dragging;
     } drag_n_drop;
+
+    struct {
+        /** Base directory for plugin binaries */
+        char *plugin_base;
+    } paths;
 } session_config_t;
 
 /**
