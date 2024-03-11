@@ -108,7 +108,7 @@ static void usage(char *const argv0) {
 }
 
 static void version(void) {
-    fprintf(stderr, "awm v%d.%d.%d\n", AWM_VERSION_MAJOR, AWM_VERSION_MINOR, AWM_VERSION_PATCH);
+    fprintf(stderr, "awm %s\n", AWM_VERSION_LONG);
 }
 
 static char *get_config_path(char *const override) {

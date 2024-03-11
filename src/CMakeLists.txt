@@ -26,7 +26,13 @@ add_executable(${TARGET_NAME} ${SRCS})
 
 target_compile_options(${TARGET_NAME} PRIVATE ${AWM_COMPILE_OPTIONS})
 target_compile_definitions(${TARGET_NAME} PRIVATE ${AWM_MACROS})
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR} "${AWM_DEPS_DIR}/")
+target_include_directories(${TARGET_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${AWM_DEPS_DIR}/" "${CMAKE_CURRENT_BINARY_DIR}/gen/")
+
+string(REPLACE "." ";" AWM_SEMVER_DELIM ${AWM_VERSION})
+list(GET AWM_SEMVER_DELIM 0 AWM_SEMVER_MAJOR)
+list(GET AWM_SEMVER_DELIM 1 AWM_SEMVER_MINOR)
+list(GET AWM_SEMVER_DELIM 2 AWM_SEMVER_PATCH)
+configure_file("${AWM_GEN_DIR}/__version.h" "${CMAKE_CURRENT_BINARY_DIR}/gen/version.h" @ONLY)
 
 # xcb libs
 find_package(XCB QUIET REQUIRED COMPONENTS

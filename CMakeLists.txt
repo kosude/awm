@@ -3,6 +3,7 @@ project("awm")
 
 set(AWM_DEPS_DIR "${CMAKE_CURRENT_LIST_DIR}/deps")
 set(AWM_TOOLS_DIR "${CMAKE_CURRENT_LIST_DIR}/tools")
+set(AWM_GEN_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake/gen")
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/mod")
 
@@ -33,6 +34,16 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(AWM_DOCS "Compile HTML documentation (requires Sphinx)" OFF)
+
+execute_process(
+    COMMAND "${AWM_TOOLS_DIR}/gversion.sh" --short --no-v
+    OUTPUT_VARIABLE AWM_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(
+    COMMAND "${AWM_TOOLS_DIR}/gversion.sh"
+    OUTPUT_VARIABLE AWM_VERSION_LONG
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "awm ${AWM_VERSION_LONG}")
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/" "${PROJECT_BINARY_DIR}/awm/") # rename build directory from src/ to awm/
 if (AWM_DOCS)

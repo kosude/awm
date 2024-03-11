@@ -12,9 +12,11 @@
     extern "C" {
 #endif
 
-#define AWM_VERSION_MAJOR 0
-#define AWM_VERSION_MINOR 1
-#define AWM_VERSION_PATCH 0
+#define AWM_VERSION_MAJOR @AWM_SEMVER_MAJOR@
+#define AWM_VERSION_MINOR @AWM_SEMVER_MINOR@
+#define AWM_VERSION_PATCH @AWM_SEMVER_PATCH@
+
+#define AWM_VERSION_LONG "@AWM_VERSION_LONG@"
 
 #ifdef __cplusplus
     }
