@@ -1,9 +1,4 @@
-#
-# Copyright (c) 2024 Jack Bennett.
-# All Rights Reserved.
-#
-# See the LICENCE file for more information.
-#
+#!/usr/bin/env bash
 
 SCRIPT_DIR="$(dirname -- "$(readlink -f "$BASH_SOURCE")")"
 BUILD_DIR="$(dirname -- "$SCRIPT_DIR")/build/plugins"
@@ -19,7 +14,7 @@ function noop {
 }
 alias echo=echo
 
-for arg in "$@" ; do
+for arg in "$@"; do
     case "$arg" in
         -q|--quiet)
             alias echo=noop
