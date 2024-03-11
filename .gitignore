@@ -3,6 +3,7 @@
 !**/.vscode/launch.json
 
 build/
+.venv/
 
 .DS_STORE
 

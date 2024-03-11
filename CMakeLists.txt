@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project("awm")
 
-set(AWM_DEPS_DIR "${CMAKE_CURRENT_LIST_DIR}/deps/")
+set(AWM_DEPS_DIR "${CMAKE_CURRENT_LIST_DIR}/deps")
+set(AWM_TOOLS_DIR "${CMAKE_CURRENT_LIST_DIR}/tools")
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/mod/")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/mod")
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 if (NOT CMAKE_BUILD_TYPE)
@@ -31,5 +32,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(AWM_DOCS "Compile HTML documentation (requires Sphinx)" OFF)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/" "${PROJECT_BINARY_DIR}/awm/") # rename build directory from src/ to awm/
+if (AWM_DOCS)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/docs/")
+endif()

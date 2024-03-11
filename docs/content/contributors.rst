@@ -1,0 +1,2 @@
+Guidance for contributors
+=========================
