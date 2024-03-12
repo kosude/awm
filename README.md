@@ -10,37 +10,4 @@ A highly configurable and lightweight X (xcb) window manager for use on Linux sy
 The aim is to have a basic floating window manager (eventually with compositing support) that behaves in a way somewhat similar to Windows, with the
 difference that it runs on an operating system that doesn't hate you.
 
-
-## Configuration
-
-Currently, there is one config file expected (although not required): `awm.conf`. It must have that filename, and be located in one of the following
-(from highest priority to lowest):
- - `~/.local/config/awm/conf/`
- - `~/.awm/conf/`
- - `/etc/awm/conf/`
-
-Otherwise, you can specify a base configuration folder (which must contain a subdirectory named `conf`) with the `-p` argument. Run `awm -h` for more
-information.
-
-
-## Development
-
-Awm can be compiled to either 32-bit or 64-bit using the appropriate CMake toolchain (in [`cmake/tc/`](cmake/tc/)).
-
-The ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS (at least M1) is also confirmed to work
-decently well. In any case, **libxcb** must be installed.
-
-### Testing
-
-The recommended method for testing Awm is via [Xephyr](https://wiki.archlinux.org/title/Xephyr). This is available from most package managers on
-Linux. It is possible to get this set up on macOS despite X not being available by default, by installing the `xquartz` package from
-[Homebrew](https://formulae.brew.sh/cask/xquartz); make sure it's allowed to run in the background and re-log after installation to start the
-XQuartz session. A `Xephyr` binary is provided by this package.
-
-A convenience script is provided at [`tools/run_xephyr.sh`](tools/run_xephyr.sh). This script runs an instance of Awm, as well as xterm, in a Xephyr
-session. Valgrind is enabled by default here, but it can be disabled with the `--none` argument.
-
-#### Multihead testing
-You can use a command such as `Xephyr :1 +xinerama -screen 800x600+0+0 -screen 800x600+800+0` to test multiple monitor support with Xephyr. An
-important thing to note is that RandR doesn't seem to work properly in such a configuration (even if it is enabled with `+extension RANDR`) - invoke
-Awm with the `-X` parameter to fix this by using Xinerama instead.
+For more information, check out the [online documentation](https://kosude.github.io/awm).

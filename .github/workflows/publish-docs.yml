@@ -9,14 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          # this is broken (https://github.com/actions/checkout/issues/1471). very helpful :) -- so we fetch tags seperately in the next step
+          fetch-tags: true
+
+      - run: git fetch --prune --unshallow --tags
 
       - name: Set up Python environment
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - run: pip install -r ${GITHUB_WORKSPACE}/docs/requirements.txt
+
+        # script is called from cmake -- this step *might* not be necessary, but better safe than sorry
+      - run: chmod +x ${GITHUB_WORKSPACE}/docs/conf_wrapper.sh
 
       - name: Build docs
         run: cmake . -B ${GITHUB_WORKSPACE}/build/ -DAWM_WM=OFF -DAWM_DOCS=ON
