@@ -12,7 +12,7 @@
     extern "C" {
 #endif
 
-#include "data/htable.h"
+#include "htable/htable.h"
 
 typedef struct client_t client_t;
 

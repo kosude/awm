@@ -1,6 +1,4 @@
 set(SRCS
-    "data/htable.c"
-
     "init/config.c"
     "init/main.c"
     "init/sighandle.c"
@@ -43,9 +41,14 @@ find_package(XCB QUIET REQUIRED COMPONENTS
 target_link_libraries(${TARGET_NAME} ${XCB_LIBRARIES})
 target_include_directories(${TARGET_NAME} PRIVATE ${XCB_INCLUDE_DIRS})
 
+# 'htable' - extracted from tcwm
+add_subdirectory("${AWM_DEPS_DIR}/htable/" "${PROJECT_BINARY_DIR}/deps/htable/")
 # zf_log v0.4.1
 add_subdirectory("${AWM_DEPS_DIR}/zf_log/" "${PROJECT_BINARY_DIR}/deps/zf_log/")
 # inih r58
 add_subdirectory("${AWM_DEPS_DIR}/inih/" "${PROJECT_BINARY_DIR}/deps/inih/")
 
-target_link_libraries(${TARGET_NAME} zf_log inih)
+target_link_libraries(${TARGET_NAME}
+    htable
+    zf_log
+    inih)

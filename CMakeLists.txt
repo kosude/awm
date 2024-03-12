@@ -34,7 +34,8 @@ endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+set(BUILD_SHARED_LIBS OFF)
+
 option(AWM_WM "Compile the Awm project" ON)
 option(AWM_DOCS "Compile HTML documentation (requires Sphinx)" OFF)
 
