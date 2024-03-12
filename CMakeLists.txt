@@ -9,13 +9,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/mod")
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 if (NOT CMAKE_BUILD_TYPE)
-    message(WARNING "Missing build configuration type! Defaulted to RELEASE, reconfigure project with option -DCMAKE_BUILD_TYPE=(Debug|Release)")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(AWM_DEBUG true)
     set(AWM_MACROS ${AWM_MACROS} "_DEBUG")
+    message(STATUS "awm: DEBUG configuration")
+else()
+    message(STATUS "awm: RELEASE configuration")
 endif()
 
 # treating warnings as errors may be problematic when compiling for prod use.
@@ -33,6 +35,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(AWM_WM "Compile the Awm project" ON)
 option(AWM_DOCS "Compile HTML documentation (requires Sphinx)" OFF)
 
 execute_process(
@@ -45,7 +48,9 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 message(STATUS "awm ${AWM_VERSION_LONG}")
 
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/" "${PROJECT_BINARY_DIR}/awm/") # rename build directory from src/ to awm/
+if (AWM_WM)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/" "${PROJECT_BINARY_DIR}/awm/")
+endif()
 if (AWM_DOCS)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/docs/")
 endif()
