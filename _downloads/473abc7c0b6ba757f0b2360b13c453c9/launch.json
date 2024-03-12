@@ -1,0 +1,37 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "(lldb) Launch",
+            "program": "${workspaceFolder}/build/awm/awm",
+            "args": [
+                "-p",
+                "tests/config"
+            ],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build project",
+            "env": {
+                "DISPLAY": ":1"
+            }
+        },
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/awm/awm",
+            "args": [
+                "-p",
+                "tests/config"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build project",
+            "env": {
+                "DISPLAY": ":1"
+            },
+            "MIMode": "gdb"
+        }
+    ],
+    "version": "2.0.0"
+}
