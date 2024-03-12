@@ -10,14 +10,13 @@
                 ".",
                 "-B",
                 "${workspaceFolder}/build",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-clang.cmake",
-                "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-gnu.cmake",
-
-                "-DAWM_DOCS=ON",
-
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
+                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-clang.cmake",
+                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
+                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-gnu.cmake",
+
+                "-DAWM_DOCS=ON"
             ]
         },
         {
@@ -32,7 +31,7 @@
 
             "problemMatcher": [
                 "$gcc"
-            ],
+            ]
         },
         {
             "type": "shell",
@@ -42,7 +41,7 @@
             "args": [
                 "-rf",
                 "${workspaceFolder}/build"
-            ],
+            ]
         },
         {
             "type": "shell",
@@ -65,7 +64,7 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
+            }
         },
         {
             "type": "shell",
@@ -77,6 +76,6 @@
                 "__clean",
                 "build project"
             ]
-        },
+        }
     ]
 }

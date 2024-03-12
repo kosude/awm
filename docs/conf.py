@@ -14,7 +14,8 @@ version = release
 # -- General configuration ---------------------------------------------------
 
 extension = [
-    "sphinx_rtd_theme"
+    "sphinx_rtd_theme",
+    "sphinx_design"
 ]
 
 templates_path = ["templates"]
