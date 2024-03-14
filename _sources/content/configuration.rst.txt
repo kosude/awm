@@ -18,8 +18,8 @@ If none of these are ideal, you can override any config searching with the ``-p`
     For the rest of this page, the base path (that is, the ``awm/`` folder) is replaced with ``<base>``.
 
 
-awm.conf
---------
+The awm.conf file
+-----------------
 
 The ``awm.conf`` file is expected in the ``<base>/conf/`` folder, and contains options for controlling Awm's behaviour via various settings. This file
 is to be written in a standard `INI <https://en.wikipedia.org/wiki/INI_file>`_ format.

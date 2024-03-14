@@ -17,13 +17,13 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=77a6b6ed"></script>
+        <script src="../_static/documentation_options.js?v=27a2b7fd"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Resources" href="contributors-resources.html" />
+    <link rel="next" title="Resource downloads" href="contributors-resources.html" />
     <link rel="prev" title="User configuration" href="configuration.html" /> 
 </head>
 
@@ -40,7 +40,7 @@
               <img src="../_static/logo.svg" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                v0.0.0-72-gf77e
+                v0.0.0-72-ga8b7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -51,10 +51,14 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">User configuration</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Guidance for contributors</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contributors-resources.html">Resources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building">Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributors-resources.html">Resource downloads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building">Building</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#toolchains">Toolchains</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-testing">Integration testing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#multihead-testing">Multihead testing</a></li>
 </ul>
@@ -95,7 +99,7 @@
 useful resources, which can be found and downloaded from <a class="reference internal" href="contributors-resources.html"><span class="doc">this sub-page</span></a>.</p>
 <section id="building">
 <h2>Building<a class="headerlink" href="#building" title="Link to this heading"></a></h2>
-<p>Ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS is also confirmed to work pretty well*. Make sure
+<p>Ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS is also confirmed to work pretty well. Make sure
 libxcb is installed before compilation!</p>
 <p>The build process is handled with <a class="reference external" href="https://cmake.org">CMake</a> - use the <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">.</span> <span class="pre">-Bbuild/</span></code> command to configure, and <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span> <span class="pre">build/</span></code> to
 compile. There are a few available options:</p>
@@ -118,7 +122,11 @@ compile. There are a few available options:</p>
 </tr>
 </tbody>
 </table>
-<p><em>*A real OS is required, so Windows might not work (not that anyone cares).</em></p>
+<section id="toolchains">
+<h3>Toolchains<a class="headerlink" href="#toolchains" title="Link to this heading"></a></h3>
+<p>CMake toolchains can be found in the <code class="docutils literal notranslate"><span class="pre">cmake/tc/</span></code> directory, and used with the <code class="docutils literal notranslate"><span class="pre">-DCMAKE_TOOLCHAIN_FILE=&lt;file.cmake&gt;</span></code> command-line option. This way,
+Awm can be cross-compiled to 32- or 64-bit architectures, or with different compilers.</p>
+</section>
 </section>
 <section id="integration-testing">
 <h2>Integration testing<a class="headerlink" href="#integration-testing" title="Link to this heading"></a></h2>
@@ -150,7 +158,7 @@ Awm with the <code class="docutils literal notranslate"><span class="pre">-X</sp
   </div>
 
   
-    awm v0.0.0-72-gf77e » <a href="https://github.com/kosude/awm">upstream url</a>
+    awm v0.0.0-72-ga8b7 » <a href="https://github.com/kosude/awm">upstream url</a>
 
 </footer>
         </div>

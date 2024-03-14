@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User configuration - Awm Manual</title>
+    <title>Command-line options - Awm Manual</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/css/link-colour.css?v=dbe95e27" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Guidance for contributors" href="contributors.html" />
-    <link rel="prev" title="Command-line options" href="command-line.html" /> 
+    <link rel="next" title="User configuration" href="configuration.html" />
+    <link rel="prev" title="Awm Documentation and User Manual" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,12 +51,8 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">User configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#config-locations">Config locations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-awm-conf-file">The awm.conf file</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command-line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">User configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributors.html">Guidance for contributors</a></li>
 </ul>
 
@@ -74,9 +70,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">User configuration</li>
+      <li class="breadcrumb-item active">Command-line options</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/content/configuration.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/content/command-line.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -84,31 +80,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="user-configuration">
-<h1>User configuration<a class="headerlink" href="#user-configuration" title="Link to this heading"></a></h1>
-<section id="config-locations">
-<h2>Config locations<a class="headerlink" href="#config-locations" title="Link to this heading"></a></h2>
-<p>Awm configuration is expected at a few specific paths. If there are multiple configurations, priority works in the order of the list below (top
-is prioritised the most).</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">~/.config/awm/</span></code> <em>(recommended for user configs)</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">~/.awm/</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">/etc/awm/</span></code></p></li>
-</ul>
-</div></blockquote>
-<p>If none of these are ideal, you can override any config searching with the <code class="docutils literal notranslate"><span class="pre">-p</span></code> command-line argument.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For the rest of this page, the base path (that is, the <code class="docutils literal notranslate"><span class="pre">awm/</span></code> folder) is replaced with <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code>.</p>
-</div>
-</section>
-<section id="the-awm-conf-file">
-<h2>The awm.conf file<a class="headerlink" href="#the-awm-conf-file" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">awm.conf</span></code> file is expected in the <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;/conf/</span></code> folder, and contains options for controlling Awm’s behaviour via various settings. This file
-is to be written in a standard <a class="reference external" href="https://en.wikipedia.org/wiki/INI_file">INI</a> format.</p>
-<p>TODO: keys?</p>
-</section>
+  <section id="command-line-options">
+<h1>Command-line options<a class="headerlink" href="#command-line-options" title="Link to this heading"></a></h1>
+<p>The awm binary respects standard Unix-style command-line arguments. This page documents those available.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>-h</p></td>
+<td><p>Print a help message and stop</p></td>
+</tr>
+<tr class="row-odd"><td><p>-V</p></td>
+<td><p>Print the current version of Awm and stop</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"></td>
+</tr>
+<tr class="row-odd"><td><p>-p &lt;path&gt;</p></td>
+<td><p>Search the specified base config path (i.e. the awm folder).
+This overrides the <a class="reference internal" href="configuration.html"><span class="doc">standard locations</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"></td>
+</tr>
+<tr class="row-odd"><td><p>-R</p></td>
+<td><p>Force older RandR &lt;=1.4 functions if applicable (as opposed to
+using RandR 1.5 if available)</p></td>
+</tr>
+<tr class="row-even"><td><p>-X</p></td>
+<td><p>Force very old Xinerama API instead of RandR (not recommended
+due to missing features, but may be required in some setups)</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 

@@ -1,5 +1,5 @@
-Resources
-=========
+Resource downloads
+==================
 
 
 Editor configuration
