@@ -17,7 +17,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=f7c36ab4"></script>
+        <script src="../_static/documentation_options.js?v=77a6b6ed"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -40,7 +40,7 @@
               <img src="../_static/logo.svg" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                v0.0.0-71-ga96c
+                v0.0.0-72-gf77e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">User configuration</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Guidance for contributors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="contributors-resources.html">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building">Building</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-testing">Integration testing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#multihead-testing">Multihead testing</a></li>
 </ul>
@@ -92,6 +93,33 @@
 </div>
 <p>Awm is a personal project, but contributions are welcome. This page contains documentation providing guidelines for contributions as well as any
 useful resources, which can be found and downloaded from <a class="reference internal" href="contributors-resources.html"><span class="doc">this sub-page</span></a>.</p>
+<section id="building">
+<h2>Building<a class="headerlink" href="#building" title="Link to this heading"></a></h2>
+<p>Ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS is also confirmed to work pretty well*. Make sure
+libxcb is installed before compilation!</p>
+<p>The build process is handled with <a class="reference external" href="https://cmake.org">CMake</a> - use the <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">.</span> <span class="pre">-Bbuild/</span></code> command to configure, and <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span> <span class="pre">build/</span></code> to
+compile. There are a few available options:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>AWM_WM</p></td>
+<td><p>Compile the Awm window manager</p></td>
+<td><p>ON</p></td>
+</tr>
+<tr class="row-odd"><td><p>AWM_DOCS</p></td>
+<td><p>Compile this HTML documentation
+(requires Sphinx)</p></td>
+<td><p>OFF</p></td>
+</tr>
+</tbody>
+</table>
+<p><em>*A real OS is required, so Windows might not work (not that anyone cares).</em></p>
+</section>
 <section id="integration-testing">
 <h2>Integration testing<a class="headerlink" href="#integration-testing" title="Link to this heading"></a></h2>
 <p>It can be a little more involved to test a window manager than a standard user application. For that reason, some advice is given here.</p>
@@ -122,7 +150,7 @@ Awm with the <code class="docutils literal notranslate"><span class="pre">-X</sp
   </div>
 
   
-    awm v0.0.0-71-ga96c » <a href="https://github.com/kosude/awm">upstream url</a>
+    awm v0.0.0-72-gf77e » <a href="https://github.com/kosude/awm">upstream url</a>
 
 </footer>
         </div>
