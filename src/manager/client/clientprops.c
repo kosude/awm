@@ -73,6 +73,10 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
     if (hints.flags & XCB_ICCCM_SIZE_HINT_P_RESIZE_INC) {
         props->sizeinc.x = (uint32_t)hints.width_inc;
         props->sizeinc.y = (uint32_t)hints.height_inc;
+
+        // round geometry
+        updgeom.extent.width = (uint32_t)rndto(updgeom.extent.width, hints.width_inc);
+        updgeom.extent.height = (uint32_t)rndto(updgeom.extent.height, hints.height_inc);
     }
 
     // base window size

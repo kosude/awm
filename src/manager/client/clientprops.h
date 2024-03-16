@@ -32,7 +32,7 @@ typedef struct clientprops_t {
     extent_t minsize;
     /** Maximum client size (of inner window). This is hinted by applications, or defaults to UINT32_MAX. */
     extent_t maxsize;
-    /** Inner window size increment values */
+    /** Inner window size increment values. */
     offset_t sizeinc;
 
     /** Buffer/margin between the frame and inner window */

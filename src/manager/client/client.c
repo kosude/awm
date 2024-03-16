@@ -38,6 +38,15 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
     client.inner = inner;
     client.properties = clientprops_init_all(con, inner);
 
+    // geometry may have been updated when getting reading properties so update this on the window
+    xcb_configure_window(
+        con, inner,
+        XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+        (uint32_t []) {
+            client.properties.rect.extent.width,
+            client.properties.rect.extent.height
+        });
+
     client.frame = frame_create(con, scr, &client);
     if (client.frame == (xcb_window_t)-1) {
         // error
