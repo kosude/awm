@@ -290,5 +290,5 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
 }
 
 static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
-    clientprops_update_normal_hints(con, client, prop);
+    clientprops_update_normal_hints(con, client, prop, NULL);
 }

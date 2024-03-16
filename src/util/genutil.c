@@ -14,3 +14,7 @@ int32_t min(int32_t a, int32_t b) {
 int32_t max(int32_t a, int32_t b) {
     return (a > b) ? a : b;
 }
+
+int32_t rndto(int32_t v, int32_t m) {
+    return v + (m - v) % m;
+}

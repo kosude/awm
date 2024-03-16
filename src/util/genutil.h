@@ -30,6 +30,14 @@ int32_t max(
     int32_t b
 );
 
+/**
+ * Round v to the nearest multiple of m and return the rounded value
+ */
+int32_t rndto(
+    int32_t v,
+    int32_t m
+);
+
 #ifdef __cplusplus
     }
 #endif

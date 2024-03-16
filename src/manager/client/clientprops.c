@@ -14,25 +14,10 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 
+#include <string.h>
+
 clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window_t win) {
-    clientprops_t props;
-
     xcb_get_property_cookie_t c_normalhints;
-
-    // get window geometry
-    xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
-
-    props.innermargin.top = 28;
-    props.innermargin.bottom = 4;
-    props.innermargin.left = props.innermargin.right = 4; // make sure left and right are equal
-
-    props.rect.extent.width = geom->width;
-    props.rect.extent.height = geom->height;
-    props.rect.offset.x = geom->x;
-    props.rect.offset.y = geom->y;
-
-    props.minsize.width = props.minsize.height = 20;
-    props.maxsize.width = props.maxsize.height = UINT32_MAX;
 
     // TODO use this for other atomic properties.
 // #   define GETPROP(atom, llen) xcb_get_property(con, 0, win, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, llen)
@@ -41,22 +26,27 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
 
 // #   undef GETPROP
 
-    // use a temporary pseudo-client to pass to clientprops_update_* functions below
-    client_t c = (client_t){
-        .inner = win,
-        .properties = props
-    };
+    client_t c;
+    c.inner = win;
+    memset(&c.properties, 0, sizeof(clientprops_t));
 
-    clientprops_update_normal_hints(con, &c, xcb_get_property_reply(con, c_normalhints, NULL));
+    c.properties.innermargin.top =    28;
+    c.properties.innermargin.bottom = 4;
+    c.properties.innermargin.left = c.properties.innermargin.right = 4; // make sure left and right are equal
 
-    // copy temporary c.properties to the actual client properties struct
-    props = c.properties;
+    // get initial geometry (update it with WM_NORMAL_HINTS in case of US/PS values)
+    xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
+    c.properties.rect.extent.width =  geom->width;
+    c.properties.rect.extent.height = geom->height;
+    c.properties.rect.offset.x = geom->x;
+    c.properties.rect.offset.y = geom->y;
+    clientprops_update_normal_hints(con, &c, xcb_get_property_reply(con, c_normalhints, NULL), &c.properties.rect);
 
     free(geom);
-    return props;
+    return c.properties;
 }
 
-void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *const client, xcb_get_property_reply_t *reply) {
+void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *const client, xcb_get_property_reply_t *reply, rect_t *geom) {
     const xcb_window_t win = client->inner;
     clientprops_t *const props = &client->properties;
 
@@ -77,6 +67,22 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
     if (!ok) {
         LERR("Failed to get WM_NORMAL_HINTS");
         return;
+    }
+
+    // size increment values
+    if (hints.flags & XCB_ICCCM_SIZE_HINT_P_RESIZE_INC) {
+        props->sizeinc.x = (uint32_t)hints.width_inc;
+        props->sizeinc.y = (uint32_t)hints.height_inc;
+    }
+
+    // base window size
+    if (hints.flags & XCB_ICCCM_SIZE_HINT_BASE_SIZE) {
+        uint32_t bw,
+                 bh;
+        bw = (uint32_t)hints.base_width;
+        bh = (uint32_t)hints.base_height;
+        props->basesize.width =  bw;
+        props->basesize.height = bh;
     }
 
     // minimum window size
@@ -111,8 +117,12 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
         props->maxsize.height = UINT32_MAX;
     }
 
-    clientprops_set_size(con, client, updgeom.extent);
-    clientprops_set_pos(con, client, updgeom.offset);
+    if (geom) {
+        *geom = updgeom;
+    } else {
+        clientprops_set_size(con, client, updgeom.extent);
+        clientprops_set_pos(con, client, updgeom.offset);
+    }
 }
 
 uint8_t clientprops_set_pos(xcb_connection_t *const con, client_t *const client, const offset_t pos) {
@@ -153,20 +163,28 @@ uint8_t clientprops_set_size(xcb_connection_t *const con, client_t *const client
     const xcb_window_t inner = client->inner,
                        frame = client->frame;
 
-    const margin_t margin =  client->properties.innermargin;
-    const extent_t minsize = client->properties.minsize,
-                   maxsize = client->properties.maxsize;
+    const margin_t margin =   client->properties.innermargin;
+    const extent_t minsize =  client->properties.minsize,
+                   maxsize =  client->properties.maxsize;
+    const extent_t basesize = client->properties.basesize; // if minsize is not present, assume basesize instead
+    const offset_t inc =      client->properties.sizeinc;
 
     uint32_t width =  extent.width,
              height = extent.height;
+
+    // round to size increments.
+    if (inc.x)
+        width = rndto(width, inc.x);
+    if (inc.y)
+        height = rndto(height, inc.y);
 
     // width changed and height changed booleans
     uint8_t wc = 0,
             hc = 0;
 
     // dimensions for constraints
-    const uint32_t minwid = minsize.width;
-    const uint32_t minhei = minsize.height;
+    const uint32_t minwid = (minsize.width)  ? minsize.width : basesize.width;
+    const uint32_t minhei = (minsize.height) ? minsize.height : basesize.height;
     const uint32_t maxwid = maxsize.width;
     const uint32_t maxhei = maxsize.height;
 

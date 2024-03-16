@@ -9,11 +9,10 @@
 
 #include "manager/client/client.h"
 #include "manager/session.h"
+#include "util/genutil.h"
 #include "util/logging.h"
 
 #include <stdlib.h>
-
-// TODO: this file *definitely* needs some refactoring.
 
 typedef enum resize_side_t {
     RESIZE_NONE     = 0x00,
@@ -165,6 +164,7 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
 
     uint8_t ungrab = 0;
 
+    const offset_t inc = client->properties.sizeinc;
     const extent_t minsize = client->properties.minsize,
                    maxsize = client->properties.maxsize;
 
@@ -186,9 +186,13 @@ static void resize_and_wait(xcb_connection_t *const con, session_t *const sessio
             xcb_flush(con);
         }
 
-        // get change in pointer position
+        // get change in pointer position (and round it to size increments)
         mnev = (xcb_motion_notify_event_t*) ev;
         ptrdelta = (offset_t){ mnev->event_x - ptrpos.x, mnev->event_y - ptrpos.y };
+        if (inc.x)
+            ptrdelta.x = rndto(ptrdelta.x, inc.x);
+        if (inc.y)
+            ptrdelta.y = rndto(ptrdelta.y, inc.y);
 
         updsize = innersize;
         updpos = innerpos;

@@ -23,12 +23,17 @@ typedef struct client_t client_t;
  * A datastructure of properties of a managed client.
  */
 typedef struct clientprops_t {
-    /** Client size and position data (of inner window, NOT including the frame/decorations) */
+    /** Actual final client size and position data (of inner window, NOT including the frame/decorations) */
     rect_t rect;
+
+    /** Base (desired) client size (of inner window). This is used in conjunction with size increment values to update values in rect. */
+    extent_t basesize;
     /** Minimum client size (of inner window). This is hinted by applications and clamped to a standard minimum. */
     extent_t minsize;
     /** Maximum client size (of inner window). This is hinted by applications, or defaults to UINT32_MAX. */
     extent_t maxsize;
+    /** Inner window size increment values */
+    offset_t sizeinc;
 
     /** Buffer/margin between the frame and inner window */
     margin_t innermargin;
@@ -44,12 +49,15 @@ clientprops_t clientprops_init_all(
 
 /**
  * Update client properties struct based on WM_NORMAL_HINTS properties.
- * Note that the heap-allocated `reply` is guaranteed to be freed in this function.
+ * Note that the (heap-allocated) `reply` is guaranteed to be freed in this function.
+ * Updated actual geometry (may be the same as before) will be returend into `geom`. If `geom` is NULL, then this geometry will be immediately
+ * applied to the client as-is.
  */
 void clientprops_update_normal_hints(
     xcb_connection_t *const con,
     client_t *const client,
-    xcb_get_property_reply_t *reply
+    xcb_get_property_reply_t *reply,
+    rect_t *geom
 );
 
 /**
