@@ -10,6 +10,7 @@
 #include "manager/session.h"
 #include "util/logging.h"
 #include "util/xstr.h"
+#include "version.h"
 
 #include <xcb/xcb.h>
 
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
 
     int scrnum, conerr;
 
-    LINFO("awm %d-bit", (int)(8 * sizeof(void *)));
+    LINFO("AWM %d-bit version %s", (int)(8 * sizeof(void *)), AWM_VERSION_LONG);
 
     // set callbacks for controlled exits + cleanup
     set_signal_callbacks((signal_callback_data_t){
