@@ -6,3 +6,7 @@ build/
 .DS_STORE
 
 vgcore.*
+
+.cache/
+compile_commands.json
+.clangd
