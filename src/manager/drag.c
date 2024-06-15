@@ -10,7 +10,6 @@
 #include "manager/client/client.h"
 #include "manager/session.h"
 #include "util/genutil.h"
-#include "util/logging.h"
 
 #include <stdlib.h>
 
