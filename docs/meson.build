@@ -13,5 +13,6 @@ custom_target(
     env: {
         'CONFPY_VERSION_OVERRIDE': version_long
     },
-    build_by_default: true
+    build_by_default: true,
+    build_always_stale: true,
 )

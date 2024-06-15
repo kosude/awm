@@ -4,7 +4,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "(lldb) Launch",
-            "program": "${workspaceFolder}/build/awm/awm",
+            "program": "${workspaceFolder}/build/src/awm",
             "args": [
                 "-p",
                 "tests/config"
@@ -19,7 +19,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/awm/awm",
+            "program": "${workspaceFolder}/build/src/awm",
             "args": [
                 "-p",
                 "tests/config"
@@ -27,9 +27,12 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build project",
-            "env": {
-                "DISPLAY": ":1"
-            },
+            "environment": [
+                {
+                    "name": "DISPLAY",
+                    "value": ":1"
+                }
+            ],
             "MIMode": "gdb"
         }
     ],

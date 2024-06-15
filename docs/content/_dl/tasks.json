@@ -5,27 +5,23 @@
             "type": "shell",
             "label": "__config",
 
-            "command": "cmake",
+            "command": "meson",
             "args": [
-                ".",
-                "-B",
+                "setup",
+                "--reconfigure",
                 "${workspaceFolder}/build",
-                "-DCMAKE_BUILD_TYPE=Debug",
-                "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-clang.cmake",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/x86_64-linux-clang.cmake",
-                // "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/cmake/tc/linux/i386-linux-gnu.cmake",
-
-                "-DAWM_DOCS=ON"
+                "-Dbuildtype=debugoptimized",
+                "-Dcore=true",
+                "-Ddocs=true"
             ]
         },
         {
             "type": "shell",
             "label": "__build",
 
-            "command": "cmake",
+            "command": "ninja",
             "args": [
-                "--build",
+                "-C",
                 "${workspaceFolder}/build"
             ],
 

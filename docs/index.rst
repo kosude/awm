@@ -21,4 +21,6 @@ Awm (creative acronym for *'a window manager'*) is a highly configurable and lig
 While currently (heavily) work-in-process, the eventual aim is to have a basic floating window manager (eventually with compositing support) that
 behaves in a way somewhat similar to Windows, with the difference that it runs on an operating system that doesn't hate you.
 
+For help with building Awm, see the :ref:`Guidance for contributors/Build process <build process>` section.
+
 Check out the `source code <https://github.com/kosude/awm>`_ on GitHub!

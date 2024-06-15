@@ -12,30 +12,45 @@ Awm is a personal project, but contributions are welcome. This page contains doc
 useful resources, which can be found and downloaded from :doc:`this sub-page <contributors-resources>`.
 
 
-Building
---------
+.. _build process:
 
-Ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS is also confirmed to work pretty well. Make sure
-libxcb is installed before compilation!
+Build process
+-------------
 
-The build process is handled with `CMake <https://cmake.org>`_ - use the ``cmake . -Bbuild/`` command to configure, and ``cmake --build build/`` to
-compile. There are a few available options:
+Ideal platform for development on Awm is, naturally, Linux (with X.org installed). That said, macOS is also confirmed to work pretty well. Before
+anything else, ensure that libxcb is installed on the development machine.
 
-+----------+----------------------------------------------------+---------------+
-| Option   | Description                                        | Default value |
-+==========+====================================================+===============+
-| AWM_WM   | Compile the Awm window manager                     | ON            |
-+----------+----------------------------------------------------+---------------+
-| AWM_DOCS | Compile this HTML documentation                    | OFF           |
-|          | (requires Sphinx)                                  |               |
-+----------+----------------------------------------------------+---------------+
+The build process is handled with `Meson <https://mesonbuild.com/>`_:
+
+.. code-block:: bash
+
+    # with full optimisations
+    $ meson setup $BUILD_DIR -Dbuildtype=release
+    $ ninja -C $BUILD_DIR
+
+    # with debug symbols
+    # (this is the default when -Dbuildtype is not specified)
+    $ meson setup $BUILD_DIR -Dbuildtype=debugoptimized
+    $ ninja -C $BUILD_DIR
+
+    # compiling this documentation
+    # note the use of '-Dcore=false', which disables compilation of awm proper
+    $ meson setup $BUILD_DIR -Ddocs=true -Dcore=false
+    $ ninja -C $BUILD_DIR
 
 
-Toolchains
-^^^^^^^^^^
+Available project setup options are listed below. To specify them, use the ``-D`` flag, as seen in the examples above.
 
-CMake toolchains can be found in the ``cmake/tc/`` directory, and used with the ``-DCMAKE_TOOLCHAIN_FILE=<file.cmake>`` command-line option. This way,
-Awm can be cross-compiled to 32- or 64-bit architectures, or with different compilers.
++----------+--------------------------------------------------------+---------------+
+| Option   | Description                                            | Default value |
++==========+========================================================+===============+
+| core     | Compile the Awm window manager                         | true          |
++----------+--------------------------------------------------------+---------------+
+| docs     | Compile this HTML documentation                        | false         |
+|          | (also requires `Sphinx <https://www.sphinx-doc.org>`_) |               |
++----------+--------------------------------------------------------+---------------+
+
+.. // TODO: cross-compiling information?
 
 
 Integration testing
