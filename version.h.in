@@ -1,0 +1,21 @@
+/**
+ * GENERATED AT BUILD TIME
+ */
+
+#pragma once
+#ifndef __awm__version_h
+#define __awm__version_h
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+#define AWM_VERSION_MAJOR @version_major@
+#define AWM_VERSION_MINOR @version_minor@
+#define AWM_VERSION_PATCH @version_patch@
+
+#define AWM_VERSION_LONG "@version_long@"
+
+#ifdef __cplusplus
+    }
+#endif
+#endif

@@ -16,6 +16,8 @@ jobs:
 
       - run: git fetch --prune --unshallow --tags
 
+      - uses: seanmiddleditch/gha-setup-ninja@v4
+
       - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
@@ -23,12 +25,12 @@ jobs:
 
       - run: pip install -r ${GITHUB_WORKSPACE}/docs/requirements.txt
 
-        # script is called from cmake -- this step *might* not be necessary, but better safe than sorry
+        # script is called from meson -- this step *might* not be necessary, but better safe than sorry
       - run: chmod +x ${GITHUB_WORKSPACE}/docs/conf_wrapper.sh
 
       - name: Build docs
-        run: cmake . -B ${GITHUB_WORKSPACE}/build/ -DAWM_WM=OFF -DAWM_DOCS=ON
-          && cmake --build ${GITHUB_WORKSPACE}/build/
+        run: meson setup ${GITHUB_WORKSPACE}/build -Dcore=false -Ddocs=true
+          && ninja -C ${GITHUB_WORKSPACE}/build
           && touch ${GITHUB_WORKSPACE}/build/docs/html/.nojekyll
 
       - name: Deploy to GitHub Pages

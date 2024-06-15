@@ -39,7 +39,7 @@ static void manage_existing_clients(
 session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const session_config_t *const cfg) {
     session_t session;
 
-    xcb_screen_t *scr;
+    xcb_screen_t *scr = NULL;
     xcb_window_t root;
 
     // copy config into session struct
