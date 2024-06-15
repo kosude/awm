@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__drag_h
-#define __manager__drag_h
+#ifndef __awm__drag_h
+#define __awm__drag_h
 #ifdef __cplusplus
     extern "C" {
 #endif

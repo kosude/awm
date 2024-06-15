@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __geom__rect_h
-#define __geom__rect_h
+#ifndef __awm__rect_h
+#define __awm__rect_h
 #ifdef __cplusplus
     extern "C" {
 #endif

@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__events_h
-#define __manager__events_h
+#ifndef __awm__events_h
+#define __awm__events_h
 #ifdef __cplusplus
     extern "C" {
 #endif

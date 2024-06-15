@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__clientprops_h
-#define __manager__clientprops_h
+#ifndef __awm__clientprops_h
+#define __awm__clientprops_h
 #ifdef __cplusplus
     extern "C" {
 #endif

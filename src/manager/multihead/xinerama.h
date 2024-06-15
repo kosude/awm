@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__xinerama_h
-#define __manager__xinerama_h
+#ifndef __awm__xinerama_h
+#define __awm__xinerama_h
 #ifdef __cplusplus
     extern "C" {
 #endif

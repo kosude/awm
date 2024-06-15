@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__randr_h
-#define __manager__randr_h
+#ifndef __awm__randr_h
+#define __awm__randr_h
 #ifdef __cplusplus
     extern "C" {
 #endif

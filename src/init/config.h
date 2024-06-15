@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __init__config_h
-#define __init__config_h
+#ifndef __awm__config_h
+#define __awm__config_h
 #ifdef __cplusplus
     extern "C" {
 #endif

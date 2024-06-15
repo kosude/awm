@@ -13,7 +13,6 @@
 
 #include "inih/ini.h"
 
-#include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>

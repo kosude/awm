@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __geom__margin_h
-#define __geom__margin_h
+#ifndef __awm__margin_h
+#define __awm__margin_h
 #ifdef __cplusplus
     extern "C" {
 #endif

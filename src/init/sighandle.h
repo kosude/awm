@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __init__sighandle_h
-#define __init__sighandle_h
+#ifndef __awm__sighandle_h
+#define __awm__sighandle_h
 #ifdef __cplusplus
     extern "C" {
 #endif

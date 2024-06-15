@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__monitor_h
-#define __manager__monitor_h
+#ifndef __awm__monitor_h
+#define __awm__monitor_h
 #ifdef __cplusplus
     extern "C" {
 #endif

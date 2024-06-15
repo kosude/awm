@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __manager__session_h
-#define __manager__session_h
+#ifndef __awm__session_h
+#define __awm__session_h
 #ifdef __cplusplus
     extern "C" {
 #endif

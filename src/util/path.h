@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __util__path_h
-#define __util__path_h
+#ifndef __awm__path_h
+#define __awm__path_h
 #ifdef __cplusplus
     extern "C" {
 #endif

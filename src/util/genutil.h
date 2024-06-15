@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#ifndef __util__genutil_h
-#define __util__genutil_h
+#ifndef __awm__genutil_h
+#define __awm__genutil_h
 #ifdef __cplusplus
     extern "C" {
 #endif
