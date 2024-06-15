@@ -74,8 +74,6 @@ endif
 if with_docs
     # check required programs
     sphinx = find_program('sphinx-build', required: true)
-    find_program('doxygen', required: true)
-    find_program('breathe-apidoc', required: true)
 
     subdir('docs')
 endif
