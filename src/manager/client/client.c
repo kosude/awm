@@ -166,8 +166,6 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
         }
     ));
 
-    // TODO: set frame name (WM_NAME or _NET_WM_NAME) to the inner window name, and remove the inner window name.
-
     if (err) {
         LERR("Failed to create frame window for inner 0x%08x: error %u (%s)", inner, err->error_code, xerrcode_str(err->error_code));
         xcb_destroy_window(con, frame);

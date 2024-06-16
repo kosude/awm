@@ -19,9 +19,10 @@
 clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const xcb_window_t win) {
     xcb_connection_t *con = ewmhcon->connection;
 
-    xcb_get_property_cookie_t c_net_name, c_normalhints;
+    xcb_get_property_cookie_t c_net_name, c_name, c_normalhints;
 
     c_net_name = xcb_ewmh_get_wm_name(ewmhcon, win);
+    c_name = xcb_icccm_get_wm_name(con, win);
     c_normalhints = xcb_icccm_get_wm_normal_hints(con, win);
 
     client_t c;
@@ -33,7 +34,10 @@ clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const x
     c.properties.innermargin.left = c.properties.innermargin.right = 4; // make sure left and right are equal
 
     // get initial client name
-    clientprops_update_net_name(&c, xcb_get_property_reply(con, c_net_name, NULL));
+    // fallback to icccm if ewmh property is not available
+    if (!clientprops_update_net_name(&c, xcb_get_property_reply(con, c_net_name, NULL))) {
+        clientprops_update_name(&c, xcb_get_property_reply(con, c_name, NULL));
+    }
 
     // get initial geometry (update it with WM_NORMAL_HINTS in case of US/PS values)
     xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
@@ -47,10 +51,10 @@ clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const x
     return c.properties;
 }
 
-void clientprops_update_net_name(client_t *const client, xcb_get_property_reply_t *reply) {
+uint8_t clientprops_update_net_name(client_t *const client, xcb_get_property_reply_t *reply) {
     if (!reply || xcb_get_property_value_length(reply) <= 0) {
         free(reply);
-        return;
+        return 0;
     }
 
     clientprops_t *const props = &client->properties;
@@ -63,6 +67,38 @@ void clientprops_update_net_name(client_t *const client, xcb_get_property_reply_
     props->name = name;
 
     LLOG("_NET_WM_NAME updated: \"%s\"", name);
+
+    free(reply);
+
+    // from now on, changes to WM_NAME (i.e. the older ICCCM variant) will be ignored
+    props->using_ewmh_name = 1;
+
+    return 1;
+}
+
+void clientprops_update_name(client_t *const client, xcb_get_property_reply_t *reply) {
+    if (!reply || xcb_get_property_value_length(reply) <= 0) {
+        free(reply);
+        return;
+    }
+
+    clientprops_t *const props = &client->properties;
+
+    // always prefer _NET_WM_NAME: if that was provided, we ignore changes to WM_NAME
+    if (props->using_ewmh_name) {
+        free(reply);
+        return;
+    }
+
+    // free previous window name
+    free(props->name);
+
+    const int len = xcb_get_property_value_length(reply);
+    char *name = strndup(xcb_get_property_value(reply), len);
+    props->name = name;
+
+    LLOG("WM_NAME updated: \"%s\"", name);
+    LLOG("Note that _NET_WM_NAME should always be preferred over WM_NAME!");
 
     free(reply);
 }

@@ -54,8 +54,10 @@ static void handle_property_notify(
 );
 /** Respond to _NET_WM_NAME */
 static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
+/** Respond to WM_NAME */
+static void propertynotify_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
 /** Respond to WM_NORMAL_HINTS */
-static void propertynotify_normal_hints(xcb_ewmh_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
+static void propertynotify_normal_hints(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
 
 /**
  * Definition for a function to handle a notification on a particular window property.
@@ -81,12 +83,14 @@ static struct propertynotify_handler_t propertynotify_handlers[] = {
     // another point on the llen field: e.g. the handler for _NET_WM_NAME has llen set to 128, so it retrieves max (128 * 32 / 8) = 512 bytes of data
 
     { 0, 128, propertynotify_net_name },            // _NET_WM_NAME
+    { 0, 128, propertynotify_name },                // WM_NAME
     { 0, UINT32_MAX, propertynotify_normal_hints }, // WM_NORMAL_HINTS
 };
 
 void event_propertynotify_handlers_init(xcb_ewmh_connection_t *const ewmh) {
     propertynotify_handlers[0].atom = ewmh->_NET_WM_NAME;
-    propertynotify_handlers[1].atom = XCB_ATOM_WM_NORMAL_HINTS;
+    propertynotify_handlers[1].atom = XCB_ATOM_WM_NAME;
+    propertynotify_handlers[2].atom = XCB_ATOM_WM_NORMAL_HINTS;
 }
 
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
@@ -302,6 +306,13 @@ static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client
     (void)ewmhcon;
 
     clientprops_update_net_name(client, prop);
+}
+
+static void propertynotify_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
+    // suppress unused parameter
+    (void)ewmhcon;
+
+    clientprops_update_name(client, prop);
 }
 
 static void propertynotify_normal_hints(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {

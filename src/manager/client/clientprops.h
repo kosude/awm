@@ -26,6 +26,8 @@ typedef struct client_t client_t;
 typedef struct clientprops_t {
     /** The name of the client */
     char *name;
+    /** 1 if `name` was specified with _NET_WM_NAME; 0 if it was with the older WM_NAME atom instead. */
+    uint8_t using_ewmh_name;
 
     /** Actual final client size and position data (of inner window, NOT including the frame/decorations) */
     rect_t rect;
@@ -54,8 +56,21 @@ clientprops_t clientprops_init_all(
 /**
  * Update client properties struct based on the _NET_WM_NAME property specified via `reply`.
  * Note that the (heap-allocated) `reply` is guaranteed to be freed in this function.
+ *
+ * 0 may be returned if the atom reply was not valid (1 otherwise). In this case try getting the name from WM_NAME instead.
  */
-void clientprops_update_net_name(
+uint8_t clientprops_update_net_name(
+    client_t *const client,
+    xcb_get_property_reply_t *reply
+);
+
+/**
+ * Update client properties struct based on the WM_NAME property specified via `reply`.
+ * Note that the (heap-allocated) `reply` is guaranteed to be freed in this function.
+
+ * WARNING: Clients should always use the NetWM equivalent, clientprops_update_net_name(), where possible (_NET_WM_NAME).
+ */
+void clientprops_update_name(
     client_t *const client,
     xcb_get_property_reply_t *reply
 );
