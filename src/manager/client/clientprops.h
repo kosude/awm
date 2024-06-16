@@ -16,6 +16,7 @@
 #include "data/rect.h"
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_ewmh.h>
 
 typedef struct client_t client_t;
 
@@ -23,6 +24,9 @@ typedef struct client_t client_t;
  * A datastructure of properties of a managed client.
  */
 typedef struct clientprops_t {
+    /** The name of the client */
+    char *name;
+
     /** Actual final client size and position data (of inner window, NOT including the frame/decorations) */
     rect_t rect;
 
@@ -43,14 +47,23 @@ typedef struct clientprops_t {
  * Get all relevant window properties on the given X window and relate them to the resulting clientprops_t structure.
  */
 clientprops_t clientprops_init_all(
-    xcb_connection_t *const con,
+    xcb_ewmh_connection_t *const ewmhcon,
     const xcb_window_t win
 );
 
 /**
- * Update client properties struct based on WM_NORMAL_HINTS properties.
+ * Update client properties struct based on the _NET_WM_NAME property specified via `reply`.
  * Note that the (heap-allocated) `reply` is guaranteed to be freed in this function.
- * Updated actual geometry (may be the same as before) will be returend into `geom`. If `geom` is NULL, then this geometry will be immediately
+ */
+void clientprops_update_net_name(
+    client_t *const client,
+    xcb_get_property_reply_t *reply
+);
+
+/**
+ * Update client properties struct based on WM_NORMAL_HINTS properties specified via `reply`.
+ * Note that the (heap-allocated) `reply` is guaranteed to be freed in this function.
+ * Updated actual geometry (may be the same as before) will be returned into `geom`. If `geom` is NULL, then this geometry will be immediately
  * applied to the client as-is.
  */
 void clientprops_update_normal_hints(

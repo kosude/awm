@@ -11,8 +11,6 @@
 #include "util/logging.h"
 #include "util/xstr.h"
 
-#include <string.h>
-
 /**
  * Create a frame for the given client.
  */
@@ -30,13 +28,14 @@ static void register_client_events(
     client_t *const client
 );
 
-client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t inner) {
+client_t client_init_framed(xcb_ewmh_connection_t *const ewmhcon, xcb_screen_t *const scr, const xcb_window_t inner) {
+    xcb_connection_t *con = ewmhcon->connection;
     xcb_generic_error_t *err;
 
     client_t client;
 
     client.inner = inner;
-    client.properties = clientprops_init_all(con, inner);
+    client.properties = clientprops_init_all(ewmhcon, inner);
 
     // geometry may have been updated when getting reading properties so update this on the window
     xcb_configure_window(
@@ -196,7 +195,7 @@ static void register_client_events(xcb_connection_t *const con, client_t *const 
     // request to recieve events on inner window
     vcookies[1] = xcb_change_window_attributes_checked(con, inner, XCB_CW_EVENT_MASK,
         (uint32_t[]) {
-            XCB_EVENT_MASK_PROPERTY_CHANGE
+            XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY
         });
 
     // grab left, middle, and right mouse buttons for click-to-raise and drag-n-drop functionality

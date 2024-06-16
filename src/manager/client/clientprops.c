@@ -16,15 +16,13 @@
 
 #include <string.h>
 
-clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window_t win) {
-    xcb_get_property_cookie_t c_normalhints;
+clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const xcb_window_t win) {
+    xcb_connection_t *con = ewmhcon->connection;
 
-    // TODO use this for other atomic properties.
-// #   define GETPROP(atom, llen) xcb_get_property(con, 0, win, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, llen)
+    xcb_get_property_cookie_t c_net_name, c_normalhints;
 
+    c_net_name = xcb_ewmh_get_wm_name(ewmhcon, win);
     c_normalhints = xcb_icccm_get_wm_normal_hints(con, win);
-
-// #   undef GETPROP
 
     client_t c;
     c.inner = win;
@@ -33,6 +31,9 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
     c.properties.innermargin.top =    28;
     c.properties.innermargin.bottom = 4;
     c.properties.innermargin.left = c.properties.innermargin.right = 4; // make sure left and right are equal
+
+    // get initial client name
+    clientprops_update_net_name(&c, xcb_get_property_reply(con, c_net_name, NULL));
 
     // get initial geometry (update it with WM_NORMAL_HINTS in case of US/PS values)
     xcb_get_geometry_reply_t *const geom = xcb_get_geometry_reply(con, xcb_get_geometry(con, win), NULL);
@@ -44,6 +45,26 @@ clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window
 
     free(geom);
     return c.properties;
+}
+
+void clientprops_update_net_name(client_t *const client, xcb_get_property_reply_t *reply) {
+    if (!reply || xcb_get_property_value_length(reply) <= 0) {
+        free(reply);
+        return;
+    }
+
+    clientprops_t *const props = &client->properties;
+
+    // free previous window name
+    free(props->name);
+
+    const int len = xcb_get_property_value_length(reply);
+    char *name = strndup(xcb_get_property_value(reply), len);
+    props->name = name;
+
+    LLOG("_NET_WM_NAME updated: \"%s\"", name);
+
+    free(reply);
 }
 
 void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *const client, xcb_get_property_reply_t *reply, rect_t *geom) {
@@ -62,6 +83,7 @@ void clientprops_update_normal_hints(xcb_connection_t *const con, client_t *cons
         ok = xcb_icccm_get_wm_size_hints_from_reply(&hints, reply);
         free(reply);
     } else {
+        // note that if reply is NULL here, it may be because the property is being deleted instead of set
         ok = xcb_icccm_get_wm_normal_hints_reply(con, xcb_icccm_get_wm_normal_hints_unchecked(con, win), &hints, NULL);
     }
     if (!ok) {

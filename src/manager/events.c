@@ -52,31 +52,41 @@ static void handle_property_notify(
     session_t *const session,
     xcb_property_notify_event_t *const ev
 );
+/** Respond to _NET_WM_NAME */
+static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
 /** Respond to WM_NORMAL_HINTS */
-static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
+static void propertynotify_normal_hints(xcb_ewmh_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
 
-/** Definition for a function to handle a notification on a particular window property. */
-typedef void (*propertynotify_handler_func_t)(xcb_connection_t *const, client_t *, xcb_get_property_reply_t *);
+/**
+ * Definition for a function to handle a notification on a particular window property.
+ * (in the form of the static handler functions defined above)
+ */
+typedef void (*propertynotify_handler_func_t)(xcb_ewmh_connection_t *const, client_t *, xcb_get_property_reply_t *);
+
 /**
  * A structure to hold a PropertyNotify event handler function and related data.
  */
 struct propertynotify_handler_t {
     xcb_atom_t atom;
-    uint32_t llen; // corresponds to long_len field when getting properties via xcb_get_property
+    // corresponds to long_len field when getting properties via xcb_get_property (how many 32-bit multiples of data should be retrieved)
+    uint32_t llen;
     propertynotify_handler_func_t func;
 };
+
 /**
  * A static array of PropertyNotify atom handlers.
  */
 static struct propertynotify_handler_t propertynotify_handlers[] = {
     // note -- atom fields are populated after atoms are retrieved from the X server
-    // FIXME: handlers aren't currently called because atoms aren't being retrieved yet.
+    // another point on the llen field: e.g. the handler for _NET_WM_NAME has llen set to 128, so it retrieves max (128 * 32 / 8) = 512 bytes of data
 
-    { 0, UINT32_MAX, propertynotify_normal_hints } // WM_NORMAL_HINTS
+    { 0, 128, propertynotify_net_name },            // _NET_WM_NAME
+    { 0, UINT32_MAX, propertynotify_normal_hints }, // WM_NORMAL_HINTS
 };
 
-void event_propertynotify_handlers_init(void) {
-    propertynotify_handlers[0].atom = XCB_ATOM_WM_NORMAL_HINTS;
+void event_propertynotify_handlers_init(xcb_ewmh_connection_t *const ewmh) {
+    propertynotify_handlers[0].atom = ewmh->_NET_WM_NAME;
+    propertynotify_handlers[1].atom = XCB_ATOM_WM_NORMAL_HINTS;
 }
 
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
@@ -85,27 +95,22 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
     switch (t) {
         case XCB_BUTTON_PRESS:
             handle_button_press(session, (xcb_button_press_event_t *)ev);
-            goto out;
+            return;
         case XCB_UNMAP_NOTIFY:
             handle_unmap_notify(session, (xcb_unmap_notify_event_t *)ev);
-            goto out;
+            return;
         case XCB_MAP_REQUEST:
             handle_map_request(session, (xcb_map_request_event_t *)ev);
-            goto out;
+            return;
         case XCB_CONFIGURE_REQUEST:
             handle_configure_request(session, (xcb_configure_request_event_t *)ev);
-            goto out;
+            return;
         case XCB_PROPERTY_NOTIFY:
             handle_property_notify(session, (xcb_property_notify_event_t *)ev);
-            goto out;
+            return;
         default:
-            goto out_unhandled;
+            return;
     }
-
-out:
-    LLOG("event_handle() handled %s", xevent_str(t));
-out_unhandled:
-    return;
 }
 
 static void handle_button_press(session_t *const session, xcb_button_press_event_t *const ev) {
@@ -139,7 +144,7 @@ static void handle_button_press(session_t *const session, xcb_button_press_event
     }
 
     // propagate click events to client so the application can process them as usual
-    xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, XCB_CURRENT_TIME);
+    xcb_allow_events(con, XCB_ALLOW_REPLAY_POINTER, ev->time);
     xcb_flush(con);
 }
 
@@ -249,6 +254,7 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
     const uint8_t state = ev->state;
 
     xcb_connection_t *const con = session->con;
+    xcb_ewmh_connection_t *const ewmhcon = &session->ewmh;
     const clientset_t clientset = session->clientset;
 
     const struct propertynotify_handler_t *handler = NULL;
@@ -286,9 +292,20 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
         }
     }
 
-    handler->func(con, client, prop);
+    handler->func(ewmhcon, client, prop);
 }
 
-static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
+#include <string.h>
+
+static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
+    // suppress unused parameter
+    (void)ewmhcon;
+
+    clientprops_update_net_name(client, prop);
+}
+
+static void propertynotify_normal_hints(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
+    xcb_connection_t *con = ewmhcon->connection;
+
     clientprops_update_normal_hints(con, client, prop, NULL);
 }

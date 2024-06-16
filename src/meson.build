@@ -33,6 +33,7 @@ dependencies = [
     dep_xcb_randr,
     dep_xcb_xinerama,
     dep_xcb_icccm,
+    dep_xcb_ewmh,
 ]
 
 # configure version header file

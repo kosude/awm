@@ -13,15 +13,18 @@
 #endif
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_ewmh.h>
 
 // TODO: store event handlers in an array indexed by the event they handle (see 2bwm source code for example)
 
 typedef struct session_t session_t;
 
 /**
- * Initialise PropertyNotify event handlers, assuming X atoms have been retrieved successfully.
+ * Initialise PropertyNotify event handlers. EWMH atoms are expected to be found in the NetWM connection `ewmh`.
  */
-void event_propertynotify_handlers_init(void);
+void event_propertynotify_handlers_init(
+    xcb_ewmh_connection_t *const ewmh
+);
 
 /**
  * Pointer to a function that takes an event and handles it accordingly.
