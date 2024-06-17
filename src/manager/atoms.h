@@ -16,8 +16,9 @@
  * A list of all EWMH-compliant atoms to be created and managed by the Awm session.
  * Before reading this macro, define a macro called `xm()` to expand/manipulate each item in the list.
  */
-#define __ATOMS_OWNED_EWMH \
-    xm(_NET_WM_NAME)
+#define __ATOMS_OWNED_EWMH  \
+    xm(_NET_WM_NAME)        \
+    xm(_NET_WM_STATE)       \
 
 /**
  * A list of all ICCCM-compliant atoms to be created and managed by the Awm session.
@@ -25,7 +26,8 @@
  *
  * Note that some atoms are automatically available from libxcb and so aren't in this list.
  */
-#define __ATOMS_OWNED_ICCCM
+#define __ATOMS_OWNED_ICCCM \
+    xm(WM_STATE)            \
 
 /**
  * Default value for Awm-managed X atoms before they are created and set.

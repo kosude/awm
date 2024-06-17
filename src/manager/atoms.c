@@ -14,6 +14,7 @@
     xcb_atom_t ATOMS_##m = ATOMS_UNSET_ATOM;
 
     __ATOMS_OWNED_EWMH
+    __ATOMS_OWNED_ICCCM
 #undef xm
 
 const char *atoms_init_owned(xcb_connection_t *con) {

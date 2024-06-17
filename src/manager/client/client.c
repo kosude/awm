@@ -7,9 +7,12 @@
 
 #include "client.h"
 
+#include "manager/atoms.h"
 #include "util/genutil.h"
 #include "util/logging.h"
 #include "util/xstr.h"
+
+#include <xcb/xcb_icccm.h>
 
 /**
  * Create a frame for the given client.
@@ -85,7 +88,13 @@ client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr
             free(err);
             goto out;
         }
-    }\
+    }
+
+    // init WM_STATE on the inner window to comply with ICCCM (also makes xprop work)
+    xcb_change_property(con, XCB_PROP_MODE_REPLACE, inner, ATOMS_WM_STATE, ATOMS_WM_STATE, 32, 2,
+        (uint32_t[]){
+            XCB_ICCCM_WM_STATE_NORMAL
+        });
 
     LLOG("New client: inner window 0x%08x reparented under 0x%08x (framed)", inner, frame);
 
@@ -191,13 +200,13 @@ static void register_client_events(xcb_connection_t *const con, client_t *const 
 
     // request to recieve events on frame
     vcookies[0] = xcb_change_window_attributes_checked(con, frame, XCB_CW_EVENT_MASK,
-        (uint32_t[]) {
+        (uint32_t[]){
             XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
         });
 
     // request to recieve events on inner window
     vcookies[1] = xcb_change_window_attributes_checked(con, inner, XCB_CW_EVENT_MASK,
-        (uint32_t[]) {
+        (uint32_t[]){
             XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY
         });
 

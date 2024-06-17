@@ -14,6 +14,8 @@
 #include "util/logging.h"
 #include "util/xstr.h"
 
+#include <xcb/xcb_icccm.h>
+
 /**
  * Handle an event of type XCB_BUTTON_PRESS.
  */
@@ -172,13 +174,23 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
         return;
     }
 
-    // destroy frame
+    // destroy frame (note this does not destroy the inner window, which instead is reparented to root)
     client_frame_destroy(con, client, root);
 
     // unmanage the client: remove all references to it and then free it
     htable_u32_pop(clientset.byinner_ht, win, NULL);
     htable_u32_pop(clientset.byframe_ht, parent, NULL);
     client_dealloc(client);
+
+    // the EWMH specification dictates that _NET_WM_STATE and _NET_WM_DESKTOP atoms are deleted from withdrawn (unmapped) windows
+    // TODO: if/when _NET_WM_DESKTOP is implemented: xcb_delete_property(con, win, ATOMS__NET_WM_DESKTOP)
+    xcb_delete_property(con, win, ATOMS__NET_WM_STATE);
+
+    // set WM_STATE to Withdrawn on inner window
+    xcb_change_property(con, XCB_PROP_MODE_REPLACE, win, ATOMS_WM_STATE, ATOMS_WM_STATE, 32, 2,
+        (uint32_t[]){
+            XCB_ICCCM_WM_STATE_WITHDRAWN
+        });
 }
 
 static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {
