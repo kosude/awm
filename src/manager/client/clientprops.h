@@ -16,7 +16,6 @@
 #include "data/rect.h"
 
 #include <xcb/xcb.h>
-#include <xcb/xcb_ewmh.h>
 
 typedef struct client_t client_t;
 
@@ -56,7 +55,7 @@ void clientprops_dealloc(
  * Get all relevant window properties on the given X window and relate them to the resulting clientprops_t structure.
  */
 clientprops_t clientprops_init_all(
-    xcb_ewmh_connection_t *const ewmhcon,
+    xcb_connection_t *const con,
     const xcb_window_t win
 );
 

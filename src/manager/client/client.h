@@ -40,7 +40,7 @@ void client_dealloc(
  * Create a framed client to hold the given inner window - the window will be reparented under the new frame.
  */
 client_t client_init_framed(
-    xcb_ewmh_connection_t *const ewmhcon,
+    xcb_connection_t *const con,
     xcb_screen_t *const scr,
     const xcb_window_t inner
 );

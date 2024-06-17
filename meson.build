@@ -60,8 +60,9 @@ if with_core
     dep_xcb = dependency('xcb', required: true)
     dep_xcb_randr = dependency('xcb-randr', required: true)
     dep_xcb_xinerama = dependency('xcb-xinerama', required: true)
+
+    # TODO: try to remove these dependencies before merging `atom_create_manual`.
     dep_xcb_icccm = dependency('xcb-icccm', required: true)
-    dep_xcb_ewmh = dependency('xcb-ewmh', required: true)
 
     subdir('deps/htable')
     subdir('deps/inih')

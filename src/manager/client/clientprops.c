@@ -7,11 +7,11 @@
 
 #include "clientprops.h"
 
-#include "client.h"
+#include "manager/atoms.h"
 #include "util/genutil.h"
 #include "util/logging.h"
+#include "client.h"
 
-#include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 
 #include <string.h>
@@ -20,14 +20,13 @@ void clientprops_dealloc(clientprops_t *const props) {
     free(props->name);
 }
 
-clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const xcb_window_t win) {
-    xcb_connection_t *con = ewmhcon->connection;
-
+clientprops_t clientprops_init_all(xcb_connection_t *const con, const xcb_window_t win) {
     xcb_get_property_cookie_t c_net_name, c_name, c_normalhints;
 
-    c_net_name = xcb_ewmh_get_wm_name(ewmhcon, win);
-    c_name = xcb_icccm_get_wm_name(con, win);
-    c_normalhints = xcb_icccm_get_wm_normal_hints(con, win);
+#   define GETPROP_COOKIE(atom, llen) xcb_get_property(con, 0, win, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, llen)
+        c_net_name = GETPROP_COOKIE(ATOMS__NET_WM_NAME, UINT32_MAX);
+        c_name = xcb_icccm_get_wm_name(con, win);
+        c_normalhints = xcb_icccm_get_wm_normal_hints(con, win);
 
     client_t c;
     c.inner = win;

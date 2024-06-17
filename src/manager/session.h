@@ -17,7 +17,6 @@
 #include "manager/multihead/monitorset.h"
 
 #include <xcb/xcb.h>
-#include <xcb/xcb_ewmh.h>
 
 typedef struct session_config_t session_config_t;
 
@@ -31,9 +30,6 @@ typedef struct session_t {
     xcb_screen_t *scr;
     /** The root X window. */
     xcb_window_t root;
-
-    /** An EWMH (NetWM) connection, containing all EWMH-compliant atoms. */
-    xcb_ewmh_connection_t ewmh;
 
     /** Session configuration */
     session_config_t cfg;

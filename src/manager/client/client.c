@@ -34,14 +34,13 @@ void client_dealloc(client_t *const client) {
     free(client);
 }
 
-client_t client_init_framed(xcb_ewmh_connection_t *const ewmhcon, xcb_screen_t *const scr, const xcb_window_t inner) {
-    xcb_connection_t *con = ewmhcon->connection;
+client_t client_init_framed(xcb_connection_t *const con, xcb_screen_t *const scr, const xcb_window_t inner) {
     xcb_generic_error_t *err;
 
     client_t client;
 
     client.inner = inner;
-    client.properties = clientprops_init_all(ewmhcon, inner);
+    client.properties = clientprops_init_all(con, inner);
 
     // geometry may have been updated when getting reading properties so update this on the window
     xcb_configure_window(

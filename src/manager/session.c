@@ -8,6 +8,7 @@
 #include "session.h"
 
 #include "init/config.h"
+#include "manager/atoms.h"
 #include "manager/client/client.h"
 #include "manager/multihead/monitor.h"
 #include "manager/multihead/randr.h"
@@ -65,13 +66,14 @@ session_t session_init(xcb_connection_t *const con, const int32_t scrnum, const 
     root = scr->root;
     session.root = root;
 
-    // set up EWMH atoms
-    if (!xcb_ewmh_init_atoms_replies(&session.ewmh, xcb_ewmh_init_atoms(con, &session.ewmh), NULL)) {
-        LFATAL("Failed to initialise EWMH (aka NetWM) atoms");
+    // set up necessary atoms
+    const char *noatom = atoms_init_owned(con);
+    if (noatom) {
+        LFATAL("Failed to initialise atom \"%s\"", noatom);
         KILL();
     }
 
-    event_propertynotify_handlers_init(&session.ewmh);
+    event_propertynotify_handlers_init();
 
     // prefetch X extensions
     if (session.cfg.force_xinerama) {
@@ -119,7 +121,6 @@ void session_dealloc(session_t *const session) {
 client_t *session_manage_client(session_t *const session, xcb_window_t win) {
     xcb_connection_t *const con = session->con;
     xcb_screen_t *const scr = session->scr;
-    xcb_ewmh_connection_t *const ewmh = &session->ewmh;
 
     clientset_t clientset = session->clientset;
 
@@ -133,7 +134,7 @@ client_t *session_manage_client(session_t *const session, xcb_window_t win) {
         LERR("malloc() fault");
         return NULL;
     }
-    *client = client_init_framed(ewmh, scr, win);
+    *client = client_init_framed(con, scr, win);
 
     // if there was an error framing the client
     if (client->frame == (xcb_window_t)-1) {

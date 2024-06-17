@@ -8,6 +8,7 @@
 #include "events.h"
 
 #include "manager/client/client.h"
+#include "manager/atoms.h"
 #include "manager/drag.h"
 #include "manager/session.h"
 #include "util/logging.h"
@@ -53,17 +54,17 @@ static void handle_property_notify(
     xcb_property_notify_event_t *const ev
 );
 /** Respond to _NET_WM_NAME */
-static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
+static void propertynotify_net_name(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
 /** Respond to WM_NAME */
-static void propertynotify_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
+static void propertynotify_name(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
 /** Respond to WM_NORMAL_HINTS */
-static void propertynotify_normal_hints(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop);
+static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop);
 
 /**
  * Definition for a function to handle a notification on a particular window property.
  * (in the form of the static handler functions defined above)
  */
-typedef void (*propertynotify_handler_func_t)(xcb_ewmh_connection_t *const, client_t *, xcb_get_property_reply_t *);
+typedef void (*propertynotify_handler_func_t)(xcb_connection_t *const, client_t *, xcb_get_property_reply_t *);
 
 /**
  * A structure to hold a PropertyNotify event handler function and related data.
@@ -87,8 +88,8 @@ static struct propertynotify_handler_t propertynotify_handlers[] = {
     { 0, UINT32_MAX, propertynotify_normal_hints }, // WM_NORMAL_HINTS
 };
 
-void event_propertynotify_handlers_init(xcb_ewmh_connection_t *const ewmh) {
-    propertynotify_handlers[0].atom = ewmh->_NET_WM_NAME;
+void event_propertynotify_handlers_init(void) {
+    propertynotify_handlers[0].atom = ATOMS__NET_WM_NAME;
     propertynotify_handlers[1].atom = XCB_ATOM_WM_NAME;
     propertynotify_handlers[2].atom = XCB_ATOM_WM_NORMAL_HINTS;
 }
@@ -258,7 +259,6 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
     const uint8_t state = ev->state;
 
     xcb_connection_t *const con = session->con;
-    xcb_ewmh_connection_t *const ewmhcon = &session->ewmh;
     const clientset_t clientset = session->clientset;
 
     const struct propertynotify_handler_t *handler = NULL;
@@ -296,27 +296,25 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
         }
     }
 
-    handler->func(ewmhcon, client, prop);
+    handler->func(con, client, prop);
 }
 
 #include <string.h>
 
-static void propertynotify_net_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
+static void propertynotify_net_name(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
     // suppress unused parameter
-    (void)ewmhcon;
+    (void)con;
 
     clientprops_update_net_name(client, prop);
 }
 
-static void propertynotify_name(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
+static void propertynotify_name(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
     // suppress unused parameter
-    (void)ewmhcon;
+    (void)con;
 
     clientprops_update_name(client, prop);
 }
 
-static void propertynotify_normal_hints(xcb_ewmh_connection_t *const ewmhcon, client_t *client, xcb_get_property_reply_t *prop) {
-    xcb_connection_t *con = ewmhcon->connection;
-
+static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
     clientprops_update_normal_hints(con, client, prop, NULL);
 }
