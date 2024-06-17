@@ -49,8 +49,8 @@ uint8_t clientset_push(clientset_t *const set, client_t *const client) {
 
     // adding the same client to separate htables to index by both child and parent windows
     htable_err_t err =
-        htable_u32_set(iht, ikey, (void *) client) |
-        htable_u32_set(fht, fkey, (void *) client);
+        htable_u32_set(iht, ikey, (void *)client) |
+        htable_u32_set(fht, fkey, (void *)client);
 
     if (!err) {
         // no errors
@@ -65,5 +65,5 @@ uint8_t clientset_push(clientset_t *const set, client_t *const client) {
 }
 
 static void free_client_cb(void *const client) {
-    free(client);
+    client_dealloc((client_t *const)client);
 }

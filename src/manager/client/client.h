@@ -30,6 +30,13 @@ typedef struct client_t {
 } client_t;
 
 /**
+ * Deallocates memory reserved for the specified client.
+ */
+void client_dealloc(
+    client_t *const client
+);
+
+/**
  * Create a framed client to hold the given inner window - the window will be reparented under the new frame.
  */
 client_t client_init_framed(

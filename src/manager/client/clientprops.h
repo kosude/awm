@@ -46,6 +46,13 @@ typedef struct clientprops_t {
 } clientprops_t;
 
 /**
+ * Frees memory reserved within the specified `clientprops_t` structure.
+ */
+void clientprops_dealloc(
+    clientprops_t *const props
+);
+
+/**
  * Get all relevant window properties on the given X window and relate them to the resulting clientprops_t structure.
  */
 clientprops_t clientprops_init_all(

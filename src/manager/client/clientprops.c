@@ -16,6 +16,10 @@
 
 #include <string.h>
 
+void clientprops_dealloc(clientprops_t *const props) {
+    free(props->name);
+}
+
 clientprops_t clientprops_init_all(xcb_ewmh_connection_t *const ewmhcon, const xcb_window_t win) {
     xcb_connection_t *con = ewmhcon->connection;
 

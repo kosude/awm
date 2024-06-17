@@ -177,7 +177,7 @@ static void handle_unmap_notify(session_t *const session, xcb_unmap_notify_event
     // unmanage the client: remove all references to it and then free it
     htable_u32_pop(clientset.byinner_ht, win, NULL);
     htable_u32_pop(clientset.byframe_ht, parent, NULL);
-    free(client);
+    client_dealloc(client);
 }
 
 static void handle_map_request(session_t *const session, xcb_map_request_event_t *const ev) {

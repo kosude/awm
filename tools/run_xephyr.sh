@@ -23,7 +23,7 @@ EOF
 
 # process to run the wm in (e.g. valgrind)
 runtime() {
-    valgrind --leak-check=full --track-origins=yes "$@"
+    valgrind --leak-check=full --track-origins=yes --show-error-list=yes --suppressions="./tools/valgrind.supp" "$@"
 }
 
 # arg parsing
@@ -48,7 +48,7 @@ for arg in "$@" ; do
     esac
 done
 
-AWM_EXEC="./build/awm/awm" # relative to repository root directory
+AWM_EXEC="./build/src/awm" # relative to repository root directory
 AWM_ARGS="-p tests/config/"
 
 # get available display number

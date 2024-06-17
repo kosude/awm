@@ -28,6 +28,12 @@ static void register_client_events(
     client_t *const client
 );
 
+void client_dealloc(client_t *const client) {
+    clientprops_dealloc(&client->properties);
+
+    free(client);
+}
+
 client_t client_init_framed(xcb_ewmh_connection_t *const ewmhcon, xcb_screen_t *const scr, const xcb_window_t inner) {
     xcb_connection_t *con = ewmhcon->connection;
     xcb_generic_error_t *err;
