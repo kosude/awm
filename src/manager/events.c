@@ -96,8 +96,19 @@ void event_propertynotify_handlers_init(void) {
     propertynotify_handlers[2].atom = XCB_ATOM_WM_NORMAL_HINTS;
 }
 
+/**
+ * Handle an event of type XCB_CLIENT_MESSAGE.
+ */
+static void handle_client_message(
+    session_t *const session,
+    xcb_client_message_event_t *const ev
+);
+/** Respond to client messages for _NET_WM_STATE */
+static void clientmessage_net_state(xcb_connection_t *const con, client_t *client, const uint32_t change, const uint32_t atom);
+
 void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
-    const uint8_t t = ev->response_type;
+    // ignore highest bit, which is only set if the event was sent with SendEvent
+    const uint8_t t = ev->response_type & ~0x80;
 
     switch (t) {
         case XCB_BUTTON_PRESS:
@@ -114,6 +125,9 @@ void event_handle(session_t *const session, xcb_generic_event_t *const ev) {
             return;
         case XCB_PROPERTY_NOTIFY:
             handle_property_notify(session, (xcb_property_notify_event_t *)ev);
+            return;
+        case XCB_CLIENT_MESSAGE:
+            handle_client_message(session, (xcb_client_message_event_t *)ev);
             return;
         default:
             return;
@@ -311,8 +325,6 @@ static void handle_property_notify(session_t *const session, xcb_property_notify
     handler->func(con, client, prop);
 }
 
-#include <string.h>
-
 static void propertynotify_net_name(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
     // suppress unused parameter
     (void)con;
@@ -329,4 +341,52 @@ static void propertynotify_name(xcb_connection_t *const con, client_t *client, x
 
 static void propertynotify_normal_hints(xcb_connection_t *const con, client_t *client, xcb_get_property_reply_t *prop) {
     clientprops_update_normal_hints(con, client, prop, NULL);
+}
+
+static void handle_client_message(session_t *const session, xcb_client_message_event_t *const ev) {
+    const xcb_window_t win = ev->window;
+    const xcb_atom_t type = ev->type;
+    const uint8_t format = ev->format;
+
+    xcb_connection_t *const con = session->con;
+    const clientset_t clientset = session->clientset;
+
+    if (type == ATOMS__NET_WM_STATE) {
+        // responding to a window state change
+        if (format != 32) {
+            LERR("When responding to ClientMessage of type _NET_WM_STATE: unknown format %d", format);
+            return;
+        }
+
+        client_t *const client = htable_u32_get(clientset.byinner_ht, win, NULL);
+        if (!client) {
+            LWARN("Recieved ClientMessage of type _NET_WM_STATE on unmanaged window");
+            return;
+        }
+
+        // iterate through message data -- in this case, call the handler for each state atom to be changed
+        for (uint32_t i = 1; i < sizeof(ev->data.data32) / sizeof(ev->data.data32[0]); i++) {
+            clientmessage_net_state(con, client, ev->data.data32[0], ev->data.data32[i]);
+        }
+    } else {
+        LERR("Missing atomic property handler for atom %d when responding to ClientMessage event", type);
+    }
+}
+
+#define _NET_WM_STATE_REMOVE 0
+#define _NET_WM_STATE_ADD 1
+
+static void clientmessage_net_state(xcb_connection_t *const con, client_t *client, const uint32_t change, const uint32_t atom) {
+    // TODO remove
+    // suppress unused parameters
+    (void)con;
+    (void)client;
+
+    const char *logchange =
+        (change == _NET_WM_STATE_REMOVE) ? "REMOVE"
+        : ((change == _NET_WM_STATE_ADD) ? "ADD" : "TOGGLE");
+
+    if (atom == ATOMS__NET_WM_STATE_FULLSCREEN) {
+        LLOG("Recieved ClientMessage: %s _NET_WM_STATE_FULLSCREEN", logchange);
+    }
 }

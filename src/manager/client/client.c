@@ -174,9 +174,10 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
         framerect.extent.width, framerect.extent.height,
         0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, rootvis,
-        XCB_CW_BACK_PIXEL,
+        XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK,
         (uint32_t []) {
             framecol,
+            XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
         }
     ));
 
@@ -193,25 +194,19 @@ static xcb_window_t frame_create(xcb_connection_t *const con, xcb_screen_t *cons
 
 static void register_client_events(xcb_connection_t *const con, client_t *const client) {
     xcb_generic_error_t *err;
-    xcb_void_cookie_t vcookies[5];
+    xcb_void_cookie_t vcookies[4];
 
     const xcb_window_t inner = client->inner;
     const xcb_window_t frame = client->frame;
 
-    // request to recieve events on frame
-    vcookies[0] = xcb_change_window_attributes_checked(con, frame, XCB_CW_EVENT_MASK,
-        (uint32_t[]){
-            XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_BUTTON_PRESS
-        });
-
     // request to recieve events on inner window
-    vcookies[1] = xcb_change_window_attributes_checked(con, inner, XCB_CW_EVENT_MASK,
+    vcookies[0] = xcb_change_window_attributes_checked(con, inner, XCB_CW_EVENT_MASK,
         (uint32_t[]){
             XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY
         });
 
     // grab left, middle, and right mouse buttons for click-to-raise and drag-n-drop functionality
-    for (uint16_t i = 2; i < 5; i++) {
+    for (uint16_t i = 1; i < 4; i++) {
         uint8_t btnid = i-1;
 
         // important: the pointer mode is SYNC, *not* ASYNC - this is so events are queued until xcb_allow_events() called.

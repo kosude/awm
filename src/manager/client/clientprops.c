@@ -101,7 +101,6 @@ void clientprops_update_name(client_t *const client, xcb_get_property_reply_t *r
     props->name = name;
 
     LLOG("WM_NAME updated: \"%s\"", name);
-    LLOG("Note that _NET_WM_NAME should always be preferred over WM_NAME!");
 
     free(reply);
 }

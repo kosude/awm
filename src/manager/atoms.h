@@ -16,9 +16,10 @@
  * A list of all EWMH-compliant atoms to be created and managed by the Awm session.
  * Before reading this macro, define a macro called `xm()` to expand/manipulate each item in the list.
  */
-#define __ATOMS_OWNED_EWMH  \
-    xm(_NET_WM_NAME)        \
-    xm(_NET_WM_STATE)       \
+#define __ATOMS_OWNED_EWMH          \
+    xm(_NET_WM_NAME)                \
+    xm(_NET_WM_STATE)               \
+    xm(_NET_WM_STATE_FULLSCREEN)    \
 
 /**
  * A list of all ICCCM-compliant atoms to be created and managed by the Awm session.
