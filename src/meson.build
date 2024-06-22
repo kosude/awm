@@ -1,23 +1,5 @@
 sources = files(
-    'init/config.c',
-    'init/main.c',
-    'init/sighandle.c',
-
-    'manager/client/client.c',
-    'manager/client/clientprops.c',
-    'manager/client/clientset.c',
-    'manager/multihead/monitor.c',
-    'manager/multihead/monitorset.c',
-    'manager/multihead/randr.c',
-    'manager/multihead/xinerama.c',
-    'manager/atoms.c',
-    'manager/drag.c',
-    'manager/events.c',
-    'manager/session.c',
-
-    'util/genutil.c',
-    'util/path.c',
-    'util/xstr.c',
+    'main.c',
 )
 
 include_directories = [
