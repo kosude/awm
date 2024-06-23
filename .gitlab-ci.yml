@@ -1,0 +1,34 @@
+stages:
+  - build
+  - deploy
+
+default:
+  image: python:3.10
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build_docs:
+  stage: build
+  before_script:
+    - pip install meson ninja
+    - pip install -r docs/requirements.txt
+    - git fetch --prune --unshallow --tags  # tags required to generate the version displayed in the output website
+  script:
+    - meson setup build -Dcore=false -Ddocs=true
+    - ninja -vC build
+  artifacts:
+    paths:
+      - build/docs/html
+
+pages:
+  stage: deploy
+  script:
+    - mkdir public
+    - mv build/docs/html/* public
+  artifacts:
+    paths:
+      - public/

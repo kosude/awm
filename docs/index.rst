@@ -23,4 +23,4 @@ behaves in a way somewhat similar to Windows, with the difference that it runs o
 
 For help with building Awm, see the :ref:`Guidance for contributors/Build process <build process>` section.
 
-Check out the `source code <https://github.com/kosude/awm>`_ on GitHub!
+Check out the `source code <https://gitlab.com/kosude/awm>`_ on GitLab!
