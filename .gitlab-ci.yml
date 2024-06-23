@@ -1,4 +1,7 @@
-test-job:
+default:
+  image: alpine:latest
+
+build:
   script:
-    - echo "Placeholder job"
-    - date
+    - env
+    - git tag -n
