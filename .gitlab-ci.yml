@@ -1,11 +1,18 @@
 default:
-  image: alpine:3.20
+  image: python:3.10-alpine3.20
 
 build:
   before_script:
-    - apk add git
+    - apk add git meson ninja-build
+    - pip install -r docs/requirements.txt
 
+      # tags are necessary to generate the version displayed in the output website
     - git fetch --prune --unshallow --tags
 
   script:
-    - git tag -n
+    - meson setup build -Dcore=false -Ddocs=true --verbose
+    - ninja -vC build
+
+  artifacts:
+    paths:
+      - build/docs/html
