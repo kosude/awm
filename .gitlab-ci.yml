@@ -3,12 +3,12 @@ stages:
   - deploy
 
 default:
-  image: python:3.10-alpine3.20
+  image: python:3.10
 
 build:
   stage: build
   before_script:
-    - apk add --no-cache python3 py3-pip meson ninja-build build-base
+    - pip install meson ninja
     - pip install -r docs/requirements.txt
     - git fetch --prune --unshallow --tags  # tags required to generate the version displayed in the output website
   script:
