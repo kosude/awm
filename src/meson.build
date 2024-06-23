@@ -1,4 +1,8 @@
 sources = files(
+    'init/cli.c',
+
+    'util/term.c',
+
     'main.c',
 )
 
