@@ -3,7 +3,7 @@ default:
 
 build:
   before_script:
-    - apk add git meson ninja-build
+    - pip install meson ninja
     - pip install -r docs/requirements.txt
 
       # tags are necessary to generate the version displayed in the output website
