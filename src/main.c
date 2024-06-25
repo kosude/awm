@@ -25,9 +25,7 @@ int main(int argc, char **argv) {
     }
 
     // enable dtor behaviour on disposable objects for graceful exit
-    term_init_sighandlers((term_disposables_t){
-        .con = con
-    });
+    term_init_sighandlers((term_disposables_t){ .con = con });
 
     LINFO("AWM %d-bit version %s", (int)(8 * sizeof(void *)), AWM_VERSION_LONG);
 

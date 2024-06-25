@@ -9,7 +9,7 @@
 #ifndef __awm__term_h__
 #define __awm__term_h__
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 #include <stdlib.h>
@@ -37,12 +37,9 @@ typedef struct term_disposables_t {
 /**
  * Initialise signal handlers to destroy objects referenced in the `disposables` struct.
  */
-void term_init_sighandlers(
-    term_disposables_t disposables
-);
-
+void term_init_sighandlers(term_disposables_t disposables);
 
 #ifdef __cplusplus
-    }
+}
 #endif
 #endif

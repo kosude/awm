@@ -9,7 +9,7 @@
 #ifndef __awm__cli_h__
 #define __awm__cli_h__
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 
 #include <stdint.h>
@@ -26,13 +26,9 @@ typedef struct cli_opts_t {
  * return value is set, awm should return with the status code being the other
  * 7 bits -- otherwise, we're fine to continue.
  */
-uint8_t cli_get_opts(
-    const int argc,
-    char **const argv,
-    cli_opts_t *const opts
-);
+uint8_t cli_get_opts(const int argc, char **const argv, cli_opts_t *const opts);
 
 #ifdef __cplusplus
-    }
+}
 #endif
 #endif

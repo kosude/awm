@@ -23,8 +23,8 @@ void term_init_sighandlers(term_disposables_t disposables) {
     atexit(exit_cb);
 
     // do graceful exits for signals too
-    signal(SIGHUP,  sig_cb);
-    signal(SIGINT,  sig_cb);
+    signal(SIGHUP, sig_cb);
+    signal(SIGINT, sig_cb);
     signal(SIGTERM, sig_cb);
 }
 
